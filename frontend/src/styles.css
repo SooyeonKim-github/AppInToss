@@ -1,0 +1,50 @@
+:root { font-family: Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:#191f28; background:#f7f8fa; font-synthesis:none; }
+* { box-sizing:border-box; }
+body { margin:0; min-width:320px; min-height:100vh; }
+button { font:inherit; }
+#root { min-height:100vh; }
+.screen { width:min(100%, 480px); min-height:100vh; margin:0 auto; padding:28px 20px 40px; background:#fff; display:flex; flex-direction:column; gap:18px; }
+.home-screen { text-align:center; justify-content:center; }
+.mascot { font-size:66px; line-height:1; }
+h1 { margin:0; font-size:32px; letter-spacing:-1px; }
+.subtitle { margin:0; color:#6b7684; }
+.primary-button { border:0; border-radius:16px; padding:16px 18px; background:#3182f6; color:white; font-weight:800; cursor:pointer; }
+.primary-button.big { padding:19px; font-size:18px; margin-top:12px; }
+.disclaimer { font-size:12px; color:#8b95a1; margin-top:10px; }
+.pattern-card { display:flex; min-height:80vh; flex-direction:column; justify-content:center; text-align:center; gap:16px; }
+.eyebrow { color:#3182f6; font-weight:800; }
+.pattern-card h2 { font-size:30px; margin:0; }
+.pattern-illustration { font-size:90px; padding:28px; border-radius:28px; background:#f2f7ff; }
+.pattern-card p { color:#4e5968; line-height:1.6; }
+.quiz-header { display:flex; justify-content:space-between; color:#6b7684; font-weight:700; }
+.badge { padding:5px 9px; border-radius:999px; background:#e8f3ff; color:#1b64da; }
+.quiz-title { margin-top:18px; text-align:center; }
+.pattern-label { text-align:center; margin:0; color:#6b7684; }
+.chart-card { background:#f8fafc; border-radius:24px; padding:12px; overflow:hidden; }
+.chart-card svg { width:100%; height:auto; display:block; }
+.grid-line { stroke:#e5e8eb; stroke-width:1; }
+.price-line { stroke:#333d4b; }
+.chart-caption { color:#8b95a1; font-size:11px; text-align:center; padding:6px 0 2px; }
+.chart-empty { padding:80px 20px; text-align:center; color:#8b95a1; }
+.choice-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.choice-button { border:0; border-radius:18px; padding:20px 10px; font-weight:900; cursor:pointer; font-size:17px; }
+.choice-button.up { color:#d13c3c; background:#fff0f0; }
+.choice-button.down { color:#1b64da; background:#eef5ff; }
+.choice-button:disabled { opacity:.5; cursor:default; }
+.result-hero { text-align:center; border-radius:24px; padding:28px; }
+.result-hero.correct { background:#effbf4; }
+.result-hero.wrong { background:#fff8e8; }
+.result-icon { font-size:48px; }
+.result-hero h1 { margin-top:8px; }
+.result-hero p { margin-bottom:0; color:#6b7684; }
+.returns-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.returns-grid div { padding:12px 6px; background:#f7f8fa; border-radius:14px; text-align:center; }
+.returns-grid span { display:block; font-size:11px; color:#8b95a1; }
+.returns-grid strong { display:block; margin-top:4px; font-size:14px; }
+.explanation { padding:18px; border-radius:18px; background:#f7f8fa; }
+.explanation p { margin:8px 0 0; line-height:1.55; color:#4e5968; }
+.stats-card { text-align:left; padding:20px; border-radius:22px; background:#f7f8fa; }
+.stats-card h2 { margin:0 0 14px; font-size:20px; }
+.stats-row { display:flex; justify-content:space-between; padding:9px 0; }
+.stats-row.highlight { margin-top:6px; padding-top:15px; border-top:1px solid #e5e8eb; color:#1b64da; }
+.daily-score { text-align:center; font-size:18px; color:#4e5968; }
