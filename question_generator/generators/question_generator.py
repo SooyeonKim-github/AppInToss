@@ -15,9 +15,10 @@ from ..config.question_config import (
     MIN_CHART_INTEREST_SCORE,
     MIN_FEATURE_STRENGTH,
     MIN_HISTORY_BARS,
+    MIN_QUESTION_GAP_BARS,
     PRIMARY_FEATURE_COUNT,
 )
-from ..features.chart_feature_engine import extract_feature_signals
+from ..features.indicator_feature_engine import extract_feature_signals
 from ..interpretation.chart_explainer import (
     build_intro_tip,
     build_result_explanation,
@@ -40,7 +41,42 @@ def _ticker_meta(df: pd.DataFrame) -> tuple[str, str, str]:
     return ticker, name, market
 
 
+def _feature_signature(row: dict) -> tuple[tuple[str, str], ...]:
+    """Compact state signature used only for near-duplicate removal."""
+    try:
+        primary = json.loads(row.get("primary_features_json") or "[]")
+    except (TypeError, json.JSONDecodeError):
+        primary = []
+    return tuple(sorted((str(x.get("key", "")), str(x.get("state", ""))) for x in primary))
+
+
+def _dedupe_nearby(candidates: list[dict]) -> list[dict]:
+    """Keep the best nearby question when feature states are effectively the same.
+
+    We intentionally rank by chart-interest first, then suppress another question from
+    the same ticker when it occurs within MIN_QUESTION_GAP_BARS and has an identical
+    primary feature-state signature. This prevents a single 2-week trend from filling
+    the bank with visually repetitive questions.
+    """
+    ranked = sorted(candidates, key=lambda x: x["chart_interest_score"], reverse=True)
+    kept: list[dict] = []
+    for row in ranked:
+        sig = _feature_signature(row)
+        bar = int(row.get("_bar_index", -10_000))
+        duplicate = False
+        for prior in kept:
+            if abs(bar - int(prior.get("_bar_index", -20_000))) > MIN_QUESTION_GAP_BARS:
+                continue
+            if sig and sig == _feature_signature(prior):
+                duplicate = True
+                break
+        if not duplicate:
+            kept.append(row)
+    return sorted(kept, key=lambda x: x["base_date"])
+
+
 def _balanced_top_candidates(candidates: list[dict], limit: int) -> list[dict]:
+    candidates = _dedupe_nearby(candidates)
     if len(candidates) <= limit:
         return sorted(candidates, key=lambda x: x["chart_interest_score"], reverse=True)
 
@@ -71,16 +107,14 @@ def generate_for_dataframe(df: pd.DataFrame) -> list[dict]:
     ticker, name, market = _ticker_meta(df)
     candidates: list[dict] = []
 
-    for i in range(MIN_HISTORY_BARS, len(df) - 20):
+    for i in range(MIN_HISTORY_BARS - 1, len(df) - 20):
         hist = df.iloc[: i + 1]
         returns = future_returns(df, i)
         if returns is None:
             continue
 
-        answer = classify_outcome(returns[20])
-        if answer is None:
-            continue
-
+        # Outcome is used only after the base-date features have been calculated.
+        # It never influences which feature text is selected.
         try:
             signals = extract_feature_signals(hist)
         except ValueError:
@@ -105,6 +139,14 @@ def generate_for_dataframe(df: pd.DataFrame) -> list[dict]:
             max_count=PRIMARY_FEATURE_COUNT,
             min_strength=MIN_FEATURE_STRENGTH,
         )
+        if not primary:
+            continue
+
+        # D+20 label is deliberately decided after all base-date-only selection work.
+        answer = classify_outcome(returns[20])
+        if answer is None:
+            continue
+
         counts = feature_counts(signals)
         base_date = df.date.iloc[i].strftime("%Y-%m-%d")
         qid = f"{ticker}-{df.date.iloc[i].strftime('%Y%m%d')}-FEATURE"
@@ -117,7 +159,7 @@ def generate_for_dataframe(df: pd.DataFrame) -> list[dict]:
                 "market": market,
                 "base_date": base_date,
                 "base_price": round(float(df.close.iloc[i]), 4),
-                # Legacy columns are retained so the current API/UI remains compatible.
+                # Legacy columns remain for current API/UI compatibility.
                 "pattern_type": "FEATURE_READING",
                 "pattern_name": "차트의 흐름 읽기",
                 "pattern_tip": build_intro_tip(primary),
@@ -146,14 +188,18 @@ def generate_for_dataframe(df: pd.DataFrame) -> list[dict]:
                 "future_candles_json": json.dumps(
                     future_window(df, i, FUTURE_DISPLAY_BARS), ensure_ascii=False
                 ),
-                "analyzer": "",
+                "analyzer": "INDICATORS_FEATURE_V2",
                 "analyzer_score": "",
                 "timing_score": "",
                 "is_active": "true",
+                "_bar_index": i,
             }
         )
 
-    return _balanced_top_candidates(candidates, MAX_QUESTIONS_PER_TICKER)
+    result = _balanced_top_candidates(candidates, MAX_QUESTIONS_PER_TICKER)
+    for row in result:
+        row.pop("_bar_index", None)
+    return result
 
 
 def export_csv(rows: list[dict], path: Path) -> None:
