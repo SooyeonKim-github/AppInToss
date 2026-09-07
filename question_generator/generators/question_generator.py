@@ -42,7 +42,6 @@ def _ticker_meta(df: pd.DataFrame) -> tuple[str, str, str]:
 
 
 def _feature_signature(row: dict) -> tuple[tuple[str, str], ...]:
-    """Compact state signature used only for near-duplicate removal."""
     try:
         primary = json.loads(row.get("primary_features_json") or "[]")
     except (TypeError, json.JSONDecodeError):
@@ -51,13 +50,6 @@ def _feature_signature(row: dict) -> tuple[tuple[str, str], ...]:
 
 
 def _dedupe_nearby(candidates: list[dict]) -> list[dict]:
-    """Keep the best nearby question when feature states are effectively the same.
-
-    We intentionally rank by chart-interest first, then suppress another question from
-    the same ticker when it occurs within MIN_QUESTION_GAP_BARS and has an identical
-    primary feature-state signature. This prevents a single 2-week trend from filling
-    the bank with visually repetitive questions.
-    """
     ranked = sorted(candidates, key=lambda x: x["chart_interest_score"], reverse=True)
     kept: list[dict] = []
     for row in ranked:
@@ -109,12 +101,8 @@ def generate_for_dataframe(df: pd.DataFrame) -> list[dict]:
 
     for i in range(MIN_HISTORY_BARS - 1, len(df) - 20):
         hist = df.iloc[: i + 1]
-        returns = future_returns(df, i)
-        if returns is None:
-            continue
 
-        # Outcome is used only after the base-date features have been calculated.
-        # It never influences which feature text is selected.
+        # 1) Everything below is based only on data visible at the question date.
         try:
             signals = extract_feature_signals(hist)
         except ValueError:
@@ -142,7 +130,10 @@ def generate_for_dataframe(df: pd.DataFrame) -> list[dict]:
         if not primary:
             continue
 
-        # D+20 label is deliberately decided after all base-date-only selection work.
+        # 2) Only after the base-date question is qualified do we read future returns.
+        returns = future_returns(df, i)
+        if returns is None:
+            continue
         answer = classify_outcome(returns[20])
         if answer is None:
             continue
@@ -159,7 +150,6 @@ def generate_for_dataframe(df: pd.DataFrame) -> list[dict]:
                 "market": market,
                 "base_date": base_date,
                 "base_price": round(float(df.close.iloc[i]), 4),
-                # Legacy columns remain for current API/UI compatibility.
                 "pattern_type": "FEATURE_READING",
                 "pattern_name": "차트의 흐름 읽기",
                 "pattern_tip": build_intro_tip(primary),
