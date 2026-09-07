@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -7,7 +10,7 @@ path = ROOT / "data" / "question_bank.csv"
 if not path.exists():
     raise SystemExit("question_bank.csv not found")
 
-df = pd.read_csv(path)
+df = pd.read_csv(path, dtype={"ticker": str})
 required = {
     "question_id",
     "pattern_type",
@@ -31,11 +34,48 @@ if "feature_signals_json" in df.columns:
         "bearish_feature_count",
         "neutral_feature_count",
         "chart_interest_score",
+        "difficulty_score",
     }
     feature_missing = feature_required - set(df.columns)
     if feature_missing:
         raise SystemExit(f"missing feature columns: {sorted(feature_missing)}")
-    print("[FEATURE] enabled")
+
+    bad_feature_rows: list[str] = []
+    bad_primary_rows: list[str] = []
+    for _, row in df.iterrows():
+        qid = str(row.get("question_id", ""))
+        try:
+            features = json.loads(row.get("feature_signals_json") or "[]")
+        except (TypeError, json.JSONDecodeError):
+            features = []
+        try:
+            primary = json.loads(row.get("primary_features_json") or "[]")
+        except (TypeError, json.JSONDecodeError):
+            primary = []
+
+        if len(features) != 15 or len({str(x.get("key", "")) for x in features}) != 15:
+            bad_feature_rows.append(qid)
+        if not 1 <= len(primary) <= 4:
+            bad_primary_rows.append(qid)
+
+        counts = {
+            "BULLISH": int(pd.to_numeric(row.get("bullish_feature_count"), errors="coerce") or 0),
+            "BEARISH": int(pd.to_numeric(row.get("bearish_feature_count"), errors="coerce") or 0),
+            "NEUTRAL": int(pd.to_numeric(row.get("neutral_feature_count"), errors="coerce") or 0),
+        }
+        if sum(counts.values()) != 15:
+            bad_feature_rows.append(qid)
+
+    if bad_feature_rows:
+        raise SystemExit(f"invalid 15-feature rows: {sorted(set(bad_feature_rows))[:10]}")
+    if bad_primary_rows:
+        raise SystemExit(f"invalid primary feature rows: {bad_primary_rows[:10]}")
+
+    if "analyzer" in df.columns:
+        engines = sorted(set(df["analyzer"].fillna("").astype(str)))
+        print("[FEATURE] engines=", engines)
+
+    print("[FEATURE] enabled: 15 chart-reading features")
     print(
         df[
             [
@@ -43,9 +83,13 @@ if "feature_signals_json" in df.columns:
                 "bearish_feature_count",
                 "neutral_feature_count",
                 "chart_interest_score",
+                "difficulty_score",
             ]
         ].describe()
     )
 
 print("[OK] rows=", len(df))
+print("[ANSWER]")
+print(df["answer"].value_counts(dropna=False))
+print("[TYPE x ANSWER]")
 print(df.groupby(["pattern_type", "answer"]).size())
