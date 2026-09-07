@@ -14,8 +14,13 @@ h1 { margin:0; font-size:32px; letter-spacing:-1px; }
 .pattern-card { display:flex; min-height:80vh; flex-direction:column; justify-content:center; text-align:center; gap:16px; }
 .eyebrow { color:#3182f6; font-weight:800; }
 .pattern-card h2 { font-size:30px; margin:0; }
-.pattern-illustration { font-size:90px; padding:28px; border-radius:28px; background:#f2f7ff; }
+.pattern-illustration { font-size:72px; padding:22px; border-radius:28px; background:#f2f7ff; }
 .pattern-card p { color:#4e5968; line-height:1.6; }
+.feature-reading-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; text-align:left; }
+.feature-reading-list li { display:flex; align-items:flex-start; gap:12px; padding:14px 15px; border-radius:16px; background:#f7f8fa; }
+.feature-reading-list li > span { font-size:20px; line-height:1.35; }
+.feature-reading-list strong { display:block; font-size:14px; margin-bottom:3px; }
+.feature-reading-list p { margin:0; font-size:14px; line-height:1.45; color:#4e5968; }
 .quiz-header { display:flex; justify-content:space-between; color:#6b7684; font-weight:700; }
 .badge { padding:5px 9px; border-radius:999px; background:#e8f3ff; color:#1b64da; }
 .quiz-title { margin-top:18px; text-align:center; }
