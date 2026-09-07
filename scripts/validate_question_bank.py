@@ -10,6 +10,12 @@ path = ROOT / "data" / "question_bank.csv"
 if not path.exists():
     raise SystemExit("question_bank.csv not found")
 
+
+def _int_value(value) -> int:
+    x = pd.to_numeric(value, errors="coerce")
+    return 0 if pd.isna(x) else int(x)
+
+
 df = pd.read_csv(path, dtype={"ticker": str})
 required = {
     "question_id",
@@ -59,9 +65,9 @@ if "feature_signals_json" in df.columns:
             bad_primary_rows.append(qid)
 
         counts = {
-            "BULLISH": int(pd.to_numeric(row.get("bullish_feature_count"), errors="coerce") or 0),
-            "BEARISH": int(pd.to_numeric(row.get("bearish_feature_count"), errors="coerce") or 0),
-            "NEUTRAL": int(pd.to_numeric(row.get("neutral_feature_count"), errors="coerce") or 0),
+            "BULLISH": _int_value(row.get("bullish_feature_count")),
+            "BEARISH": _int_value(row.get("bearish_feature_count")),
+            "NEUTRAL": _int_value(row.get("neutral_feature_count")),
         }
         if sum(counts.values()) != 15:
             bad_feature_rows.append(qid)
