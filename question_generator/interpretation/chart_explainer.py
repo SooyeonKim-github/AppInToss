@@ -5,7 +5,33 @@ from collections import Counter
 from ..features.chart_feature_engine import FeatureSignal
 
 
-def select_primary_features(signals: list[FeatureSignal], *, max_count: int = 4, min_strength: float = 0.42) -> list[FeatureSignal]:
+EDUCATION_BUCKETS = {
+    "TREND_STRUCTURE": {"TREND", "PRICE_STRUCTURE"},
+    "MOVING_AVERAGE": {"MOVING_AVERAGE"},
+    "PARTICIPATION": {"VOLUME", "MOMENTUM"},
+    "CONTEXT_RISK": {"PRICE_POSITION", "VOLATILITY", "SUPPORT_RESISTANCE", "PULLBACK_REBOUND"},
+}
+
+
+def _bucket(signal: FeatureSignal) -> str:
+    for name, categories in EDUCATION_BUCKETS.items():
+        if signal.category in categories:
+            return name
+    return signal.category
+
+
+def select_primary_features(
+    signals: list[FeatureSignal],
+    *,
+    max_count: int = 4,
+    min_strength: float = 0.42,
+) -> list[FeatureSignal]:
+    """Pick a readable cross-section of the base-date chart.
+
+    The answer/future return is intentionally not an input. We prefer different
+    educational viewpoints so users see trend, moving averages, participation and
+    risk/context rather than four variants of the same indicator family.
+    """
     if not signals:
         return []
 
@@ -14,34 +40,42 @@ def select_primary_features(signals: list[FeatureSignal], *, max_count: int = 4,
         active = sorted(signals, key=lambda x: x.strength, reverse=True)
 
     directional = [s for s in active if s.direction in {"BULLISH", "BEARISH"}]
-    neutral = [s for s in active if s.direction == "NEUTRAL"]
-
     bull_strength = sum(s.strength for s in directional if s.direction == "BULLISH")
     bear_strength = sum(s.strength for s in directional if s.direction == "BEARISH")
     dominant = "BULLISH" if bull_strength >= bear_strength else "BEARISH"
     opposite = "BEARISH" if dominant == "BULLISH" else "BULLISH"
 
     chosen: list[FeatureSignal] = []
-    used_categories: set[str] = set()
+    used_buckets: set[str] = set()
 
-    def add_from(pool: list[FeatureSignal], limit: int | None = None) -> None:
-        added = 0
-        for signal in sorted(pool, key=lambda x: x.strength, reverse=True):
-            if signal in chosen:
-                continue
-            if signal.category in used_categories and len(chosen) < max_count - 1:
-                continue
-            chosen.append(signal)
-            used_categories.add(signal.category)
-            added += 1
-            if len(chosen) >= max_count or (limit is not None and added >= limit):
-                break
+    # 1) First cover different chart-reading viewpoints using dominant/neutral evidence.
+    preferred = [s for s in active if s.direction in {dominant, "NEUTRAL"}]
+    for signal in sorted(preferred, key=lambda x: x.strength, reverse=True):
+        bucket = _bucket(signal)
+        if bucket in used_buckets:
+            continue
+        chosen.append(signal)
+        used_buckets.add(bucket)
+        if len(chosen) >= max_count - 1:
+            break
 
-    # 정답을 보지 않고 기준일 차트만으로 선택한다.
-    add_from([s for s in directional if s.direction == dominant], limit=2)
-    add_from([s for s in directional if s.direction == opposite], limit=1)
-    add_from(directional)
-    add_from(neutral)
+    # 2) If a meaningful counter-signal exists, keep exactly one so the quiz is not a giveaway.
+    counter = sorted(
+        [s for s in active if s.direction == opposite and s not in chosen],
+        key=lambda x: x.strength,
+        reverse=True,
+    )
+    if counter and len(chosen) < max_count:
+        chosen.append(counter[0])
+
+    # 3) Fill remaining slots by strength while avoiding exact duplicate keys.
+    for signal in sorted(active, key=lambda x: x.strength, reverse=True):
+        if signal in chosen or any(x.key == signal.key for x in chosen):
+            continue
+        chosen.append(signal)
+        if len(chosen) >= max_count:
+            break
+
     return chosen[:max_count]
 
 
