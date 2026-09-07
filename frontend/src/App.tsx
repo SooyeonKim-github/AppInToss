@@ -109,6 +109,7 @@ export default function App() {
         <PatternCard
           name={current.patternName}
           tip={current.patternTip}
+          features={current.features}
           onStart={() => setStage('quiz')}
         />
       </main>
