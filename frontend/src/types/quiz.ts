@@ -1,4 +1,5 @@
 export type Direction = 'UP' | 'DOWN';
+export type FeatureDirection = 'BULLISH' | 'BEARISH' | 'NEUTRAL';
 
 export interface Candle {
   date: string;
@@ -9,12 +10,24 @@ export interface Candle {
   volume: number;
 }
 
+export interface ChartFeatureSignal {
+  category: string;
+  key: string;
+  label: string;
+  state: string;
+  direction: FeatureDirection;
+  strength: number;
+  text: string;
+  value?: number | string | null;
+}
+
 export interface QuizQuestion {
   questionId: string;
   patternType: string;
   patternName: string;
   patternTip: string;
-  difficulty: 'BEGINNER';
+  difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  features?: ChartFeatureSignal[];
   candles: Candle[];
 }
 
