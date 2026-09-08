@@ -22,6 +22,7 @@ export function HomePage() {
   const [regions, setRegions] = useState<Region[]>([]);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [sunsetBestMode, setSunsetBestMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [regionLoading, setRegionLoading] = useState(false);
   const [recommendationLoading, setRecommendationLoading] = useState(false);
@@ -35,6 +36,7 @@ export function HomePage() {
   }, []);
 
   async function handleViewSelect(view: ViewCode) {
+    setSunsetBestMode(false);
     setSelectedView(view);
     setSelectedRegion(null);
     setRecommendations([]);
@@ -51,11 +53,12 @@ export function HomePage() {
 
   async function handleRegionSelect(regionCode: string) {
     if (!selectedView) return;
+    setSunsetBestMode(false);
     setSelectedRegion(regionCode);
     setRecommendationLoading(true);
     try {
       const data = await fetchRecommendations(selectedView, regionCode);
-      setRecommendations(data.recommendations);
+      setRecommendations(data.recommendations.slice(0, 5));
       window.setTimeout(() => {
         document
           .getElementById("recommendations")
@@ -70,12 +73,13 @@ export function HomePage() {
 
   async function handleSunsetBest() {
     setRecommendationLoading(true);
+    setSunsetBestMode(true);
     setSelectedView(null);
     setSelectedRegion(null);
     setRegions([]);
     try {
       const data = await fetchSunsetBest();
-      setRecommendations([data.recommendation]);
+      setRecommendations(data.recommendations.slice(0, 5));
       window.setTimeout(() => {
         document
           .getElementById("recommendations")
@@ -125,7 +129,7 @@ export function HomePage() {
         <span>🌇</span>
         <div>
           <strong>오늘 노을 보기 제일 좋은 곳</strong>
-          <small>뷰와 지역 선택 없이 바로 골라드려요</small>
+          <small>서울 전체에서 오늘의 TOP 5를 골라드려요</small>
         </div>
         <span>›</span>
       </button>
@@ -134,12 +138,21 @@ export function HomePage() {
 
       {(recommendationLoading || recommendations.length > 0) && (
         <section id="recommendations" className="recommendations section-block">
-          <div className="section-heading">
-            <h2>{recommendations.length === 1 ? "오늘의 루프탑무드" : "여기 어때요?"}</h2>
-            <p>노을과 뷰를 기준으로 최대 3곳만 골랐어요.</p>
+          <div className="section-heading recommendation-heading">
+            <p className="ranking-kicker">ROOFTOP TOP 5</p>
+            <h2>
+              {sunsetBestMode
+                ? "오늘 노을 추천 TOP 5 🌇"
+                : "이 지역 루프탑 추천 TOP 5 🌇"}
+            </h2>
+            <p>
+              {sunsetBestMode
+                ? "오늘 날씨와 노을 방향이 잘 맞는 순서예요."
+                : "선택한 뷰와 오늘 노을을 함께 보기 좋은 순서예요."}
+            </p>
           </div>
           {recommendationLoading ? (
-            <div className="skeleton-card">루프탑을 고르고 있어요…</div>
+            <div className="skeleton-card">루프탑 TOP 5를 고르고 있어요…</div>
           ) : (
             <div className="recommendation-list">
               {recommendations.map((item, index) => (
