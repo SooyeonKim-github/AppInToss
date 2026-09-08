@@ -21,7 +21,8 @@ for code in ("han_river", "city", "palace", "forest"):
 
 REVIEW_FIELDS = CLASSIFICATION_FIELDS + ["review_reasons"]
 SIGNAL_FIELDS = [
-    "cafe_id", "cafe_name", "region_code", "raw_match_count", "matched_queries",
+    "cafe_id", "cafe_name", "region_code", "raw_match_count",
+    "matched_query_count", "region_query_total", "query_hit_ratio", "matched_queries",
     "rooftop_query_hits", "han_river_query_hits", "city_query_hits", "palace_query_hits", "forest_query_hits",
 ]
 DISCOVERY_FIELDS = ["view_candidate", "cafe_count", "evidence_count", "sample_evidence", "suggested_action"]
@@ -49,8 +50,6 @@ class ClassificationPipeline:
                 review["review_reasons"] = "|".join(reasons)
                 review_rows.append(review)
 
-        # Naver Blog evidence 제거 후에는 신규 기타 뷰 자동발견을 하지 않는다.
-        # 필요한 뷰는 config/search_queries.yaml에 검색어를 추가해 명시적으로 확장한다.
         discovered: list[dict] = []
 
         write_csv(output_dir / "cafe_classification.csv", combined, CLASSIFICATION_FIELDS)
