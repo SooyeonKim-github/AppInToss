@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections import defaultdict
 import logging
 
 from analyzers.description_generator import TemplateDescriptionGenerator
@@ -47,15 +46,6 @@ class DescriptionGenerationPipeline:
 
         candidates = read_csv(candidates_path)
         classifications = read_csv(classification_path)
-
-        # Kakao-only V1에서는 블로그 evidence가 필수가 아니다.
-        # 과거 결과가 있으면 방향/랜드마크 보조 근거로만 활용하고, 없어도 정상 동작한다.
-        evidence_path = output_dir / "cafe_evidences.csv"
-        evidence_rows = read_csv(evidence_path) if evidence_path.exists() else []
-
-        evidence_by_id: dict[str, list[dict]] = defaultdict(list)
-        for row in evidence_rows:
-            evidence_by_id[row.get("cafe_id", "")].append(row)
         candidate_by_id = {row.get("cafe_id", ""): row for row in candidates}
 
         extractor = ViewFeatureExtractor()
@@ -66,12 +56,13 @@ class DescriptionGenerationPipeline:
 
         for classification in classifications:
             cafe_id = classification.get("cafe_id", "")
-            cafe_evidence = evidence_by_id.get(cafe_id, [])
+            # Kakao-only V1: 오래된 Naver evidence 파일이 로컬에 남아 있어도 사용하지 않는다.
+            cafe_evidence: list[dict] = []
             features = extractor.extract(classification, cafe_evidence)
             candidate = candidate_by_id.get(cafe_id, {})
 
-            features["evidence_sunset_position"] = features.get("sunset_position", "UNKNOWN")
-            features["evidence_sunset_position_confidence"] = features.get("sunset_position_confidence", 0.0)
+            features["evidence_sunset_position"] = "UNKNOWN"
+            features["evidence_sunset_position_confidence"] = 0.0
             view_direction = direction_estimator.estimate(candidate, features, cafe_evidence)
             features.update(view_direction)
 
