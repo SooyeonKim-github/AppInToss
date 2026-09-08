@@ -28,7 +28,16 @@ DEDUP_FIELDS = [
 class CandidateDiscoveryPipeline:
     def __init__(self):
         self.kakao = KakaoLocalCollector(settings.kakao_rest_api_key, settings.request_timeout_sec) if settings.has_kakao else None
-        self.naver = NaverLocalCollector(settings.naver_client_id, settings.naver_client_secret, settings.request_timeout_sec) if settings.has_naver else None
+        self.naver = (
+            NaverLocalCollector(
+                settings.naver_client_id,
+                settings.naver_client_secret,
+                settings.request_timeout_sec,
+                settings.naver_api_hub_base_url,
+            )
+            if settings.has_naver
+            else None
+        )
         self.deduplicator = CandidateDeduplicator()
 
     def run(self) -> tuple[list[dict], list[dict]]:
@@ -36,7 +45,10 @@ class CandidateDiscoveryPipeline:
         raw: list[dict] = []
 
         if not self.kakao and not self.naver:
-            raise RuntimeError("API 키가 없습니다. DataCollector/.env에 Kakao 또는 Naver 키를 설정하세요.")
+            raise RuntimeError(
+                "API 키가 없습니다. DataCollector/.env에 Kakao 키 또는 "
+                "NAVER API HUB 키를 설정하세요."
+            )
 
         for region_code, query in queries:
             LOGGER.info("검색: %s [%s]", query, region_code)
@@ -54,9 +66,9 @@ class CandidateDiscoveryPipeline:
                     if self.kakao:
                         self._enrich_naver_coordinates(found)
                     raw.extend(found)
-                    LOGGER.info("  Naver: %d", len(found))
+                    LOGGER.info("  Naver API HUB: %d", len(found))
                 except Exception as exc:
-                    LOGGER.exception("  Naver 실패: %s", exc)
+                    LOGGER.exception("  Naver API HUB 실패: %s", exc)
 
         deduped = self.deduplicator.deduplicate(raw)
         output_dir = BASE_DIR / "output"
