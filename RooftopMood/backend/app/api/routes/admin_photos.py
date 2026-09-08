@@ -26,9 +26,32 @@ def _headers() -> dict[str, str]:
     }
 
 
+def _signed_url(storage_path: str, expires_in: int = 900) -> str | None:
+    if not settings.supabase_url:
+        return None
+    bucket = settings.supabase_storage_bucket
+    try:
+        response = httpx.post(
+            f"{settings.supabase_url.rstrip('/')}/storage/v1/object/sign/{bucket}/{storage_path}",
+            headers=_headers(),
+            json={"expiresIn": expires_in},
+            timeout=10.0,
+        )
+        response.raise_for_status()
+    except httpx.HTTPError:
+        return None
+
+    relative_url = response.json().get("signedURL") or response.json().get("signedUrl")
+    if not relative_url:
+        return None
+    if str(relative_url).startswith("http"):
+        return str(relative_url)
+    return f"{settings.supabase_url.rstrip('/')}/storage/v1{relative_url}"
+
+
 @router.get("")
 def list_photos(
-    status: str = Query("PENDING", pattern="^(PENDING|APPROVED|REJECTED)$"),
+    status: str = Query("PENDING", pattern="^(PENDING|APPROVED)$"),
     admin_key: str | None = Header(default=None, alias="X-Admin-Key"),
 ) -> list[dict]:
     _require_admin(admin_key)
@@ -40,26 +63,30 @@ def list_photos(
             f"{settings.supabase_url.rstrip('/')}/rest/v1/cafe_photos",
             headers=_headers(),
             params={
-                "select": "id,cafe_id,image_url,status,created_at,cafes(name,region_name)",
+                "select": "id,cafe_id,storage_path,status,created_at,cafes(name,region_name)",
                 "status": f"eq.{status}",
                 "order": "created_at.desc",
             },
             timeout=10.0,
         )
         response.raise_for_status()
-        return response.json()
+        rows = response.json()
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail="Supabase 조회에 실패했어요.") from exc
+
+    for row in rows:
+        row["reviewImageUrl"] = _signed_url(row["storage_path"])
+    return rows
 
 
 def _update_status(photo_id: int, status: str) -> dict:
     if not settings.supabase_url:
         raise HTTPException(status_code=503, detail="Supabase 서버 설정이 완료되지 않았어요.")
 
-    payload: dict[str, str | None] = {"status": status}
-    payload["approved_at"] = (
-        datetime.now(timezone.utc).isoformat() if status == "APPROVED" else None
-    )
+    payload = {
+        "status": status,
+        "approved_at": datetime.now(timezone.utc).isoformat(),
+    }
 
     try:
         response = httpx.patch(
@@ -74,6 +101,25 @@ def _update_status(photo_id: int, status: str) -> dict:
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail="Supabase 수정에 실패했어요.") from exc
 
+    if not rows:
+        raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다.")
+    return rows[0]
+
+
+def _find_photo(photo_id: int) -> dict:
+    if not settings.supabase_url:
+        raise HTTPException(status_code=503, detail="Supabase 서버 설정이 완료되지 않았어요.")
+    try:
+        response = httpx.get(
+            f"{settings.supabase_url.rstrip('/')}/rest/v1/cafe_photos",
+            headers=_headers(),
+            params={"select": "id,cafe_id,storage_path", "id": f"eq.{photo_id}", "limit": "1"},
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        rows = response.json()
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Supabase 조회에 실패했어요.") from exc
     if not rows:
         raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다.")
     return rows[0]
@@ -94,4 +140,31 @@ def reject_photo(
     admin_key: str | None = Header(default=None, alias="X-Admin-Key"),
 ) -> dict:
     _require_admin(admin_key)
-    return _update_status(photo_id, "REJECTED")
+    photo = _find_photo(photo_id)
+    if not settings.supabase_url:
+        raise HTTPException(status_code=503, detail="Supabase 서버 설정이 완료되지 않았어요.")
+
+    bucket = settings.supabase_storage_bucket
+    try:
+        storage_response = httpx.delete(
+            f"{settings.supabase_url.rstrip('/')}/storage/v1/object/{bucket}/{photo['storage_path']}",
+            headers=_headers(),
+            timeout=10.0,
+        )
+        storage_response.raise_for_status()
+        db_response = httpx.delete(
+            f"{settings.supabase_url.rstrip('/')}/rest/v1/cafe_photos",
+            headers=_headers(),
+            params={"id": f"eq.{photo_id}"},
+            timeout=10.0,
+        )
+        db_response.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="사진 거절 처리에 실패했어요.") from exc
+
+    return {
+        "photoId": photo_id,
+        "cafeId": photo["cafe_id"],
+        "status": "REJECTED",
+        "message": "사진을 거절하고 업로드 자리를 다시 열었어요.",
+    }
