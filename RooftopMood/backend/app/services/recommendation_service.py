@@ -160,6 +160,8 @@ class RecommendationService:
             score=score,
             tags=tags[:3],
             imageUrl=cafe.get("imageUrl"),
+            photoStatus=cafe.get("photoStatus"),
+            canUploadPhoto=bool(cafe.get("canUploadPhoto", cafe.get("imageUrl") is None)),
             kakaoMapUrl=self._kakao_map_url(cafe),
         )
 
