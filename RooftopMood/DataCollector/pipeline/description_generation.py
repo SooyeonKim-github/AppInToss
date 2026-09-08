@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections import defaultdict
 
 from analyzers.description_generator import TemplateDescriptionGenerator
 from analyzers.view_feature_extractor import ViewFeatureExtractor
@@ -48,6 +49,14 @@ class DescriptionGenerationPipeline:
         classifications = read_csv(classification_path)
         candidate_by_id = {row.get("cafe_id", ""): row for row in candidates}
 
+        evidence_path = output_dir / "cafe_evidences.csv"
+        evidence_by_id: dict[str, list[dict]] = defaultdict(list)
+        if evidence_path.exists():
+            for row in read_csv(evidence_path):
+                evidence_by_id[str(row.get("cafe_id", ""))].append(row)
+        else:
+            LOGGER.warning("cafe_evidences.csv가 없습니다. 블로그 문장 근거 없이 설명/방향을 생성합니다.")
+
         extractor = ViewFeatureExtractor()
         generator = TemplateDescriptionGenerator()
         direction_estimator = ViewDirectionEstimator()
@@ -56,13 +65,12 @@ class DescriptionGenerationPipeline:
 
         for classification in classifications:
             cafe_id = classification.get("cafe_id", "")
-            # Kakao-only V1: 오래된 Naver evidence 파일이 로컬에 남아 있어도 사용하지 않는다.
-            cafe_evidence: list[dict] = []
+            cafe_evidence = evidence_by_id.get(str(cafe_id), [])
             features = extractor.extract(classification, cafe_evidence)
             candidate = candidate_by_id.get(cafe_id, {})
 
-            features["evidence_sunset_position"] = "UNKNOWN"
-            features["evidence_sunset_position_confidence"] = 0.0
+            features["evidence_sunset_position"] = features.get("sunset_position", "UNKNOWN")
+            features["evidence_sunset_position_confidence"] = features.get("sunset_position_confidence", 0.0)
             view_direction = direction_estimator.estimate(candidate, features, cafe_evidence)
             features.update(view_direction)
 
@@ -97,5 +105,11 @@ class DescriptionGenerationPipeline:
 
         generated_count = sum(bool(row.get("view_description")) for row in description_rows)
         review_count = sum(int(row.get("description_review_required", 0) or 0) == 1 for row in description_rows)
-        LOGGER.info("Descriptions generated=%d/%d | review_required=%d", generated_count, len(description_rows), review_count)
+        LOGGER.info(
+            "Descriptions generated=%d/%d | review_required=%d | cafes_with_blog_evidence=%d",
+            generated_count,
+            len(description_rows),
+            review_count,
+            sum(bool(evidence_by_id.get(str(row.get("cafe_id", "")))) for row in classifications),
+        )
         return description_rows, db_rows
