@@ -5,9 +5,10 @@ import logging
 import sys
 
 from pipeline.candidate_discovery import CandidateDiscoveryPipeline
-from pipeline.evidence_collection import EvidenceCollectionPipeline
 from pipeline.classification import ClassificationPipeline
 from pipeline.description_generation import DescriptionGenerationPipeline
+from pipeline.evidence_collection import EvidenceCollectionPipeline
+from pipeline.supabase_publish import SupabasePublishPipeline
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,6 +22,11 @@ def parse_args() -> argparse.Namespace:
 
     sub.add_parser("classify", help="Evidence 기반 Rooftop/View 분류 + 기타 뷰 후보 발견")
     sub.add_parser("describe", help="외부 LLM 없이 DB 저장용 고정 1문장 뷰 설명 생성")
+
+    publish = sub.add_parser("publish", help="cafe_db_ready.csv를 Supabase 운영 DB에 upsert")
+    publish.add_argument("--dry-run", action="store_true", help="실제 저장 없이 적재 대상 개수만 확인")
+    publish.add_argument("--include-review", action="store_true", help="설명 검토 필요 카페도 포함")
+    publish.add_argument("--limit", type=int, default=None, help="처음 N개 적재 대상만 처리")
 
     all_cmd = sub.add_parser("all", help="discover → evidence → classify → describe 연속 실행")
     all_cmd.add_argument("--limit", type=int, default=None, help="Evidence 수집 대상 N개 제한")
@@ -39,6 +45,12 @@ def main() -> int:
             ClassificationPipeline().run()
         elif args.command == "describe":
             DescriptionGenerationPipeline().run()
+        elif args.command == "publish":
+            SupabasePublishPipeline().run(
+                dry_run=args.dry_run,
+                include_review=args.include_review,
+                limit=args.limit,
+            )
         elif args.command == "all":
             CandidateDiscoveryPipeline().run()
             EvidenceCollectionPipeline().run(limit=args.limit)
