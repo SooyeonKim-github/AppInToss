@@ -1,23 +1,110 @@
 @echo off
-setlocal
+setlocal EnableExtensions
+chcp 65001 >nul
 cd /d "%~dp0DataCollector"
 
 if not exist .venv (
-    echo [RooftopMood] DataCollector virtual environment creating...
+    echo [RooftopMood] DataCollector 가상환경을 생성합니다...
     py -m venv .venv
-)
+    if errorlevel 1 goto :error
 
-call .venv\Scripts\activate.bat
-python -m pip install -r requirements.txt
+    call .venv\Scripts\activate.bat
+    python -m pip install --upgrade pip
+    python -m pip install -r requirements.txt
+    if errorlevel 1 goto :error
+) else (
+    call .venv\Scripts\activate.bat
+)
 
 if not exist .env (
     copy .env.example .env >nul
     echo.
-    echo [RooftopMood] DataCollector\.env was created.
-    echo Please enter KAKAO_REST_API_KEY / NAVER_CLIENT_ID / NAVER_CLIENT_SECRET and run again.
+    echo [RooftopMood] DataCollector\.env 파일을 생성했습니다.
+    echo KAKAO_REST_API_KEY / NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 값을 입력한 뒤 다시 실행해주세요.
+    echo.
     pause
     exit /b 1
 )
 
-python main.py %*
+rem 인자가 있으면 기존 방식 그대로 실행합니다.
+if not "%~1"=="" (
+    python main.py %*
+    set EXIT_CODE=%ERRORLEVEL%
+    if not "%EXIT_CODE%"=="0" goto :error_code
+    goto :done
+)
+
+:menu
+cls
+echo ====================================================
+echo              RooftopMood DataCollector
+echo ====================================================
+echo.
+echo  [1] 후보 카페 수집              discover
+echo  [2] 근거 수집 10개 테스트       evidence --limit 10
+echo  [3] 전체 근거 수집               evidence
+echo  [4] 루프탑/뷰 분류               classify
+echo  [5] 설명 및 DB-ready 생성        describe
+echo  [6] 10개 테스트 전체 파이프라인  all --limit 10
+echo  [7] 전체 파이프라인              all
+echo  [8] Supabase 적재 미리보기       publish --dry-run
+echo  [9] Supabase 실제 적재           publish
+echo  [O] output 폴더 열기
+echo  [Q] 종료
+echo.
+set /p CHOICE=선택: 
+
+if /I "%CHOICE%"=="1" set CMD=discover& goto :run
+if /I "%CHOICE%"=="2" set CMD=evidence --limit 10& goto :run
+if /I "%CHOICE%"=="3" set CMD=evidence& goto :run
+if /I "%CHOICE%"=="4" set CMD=classify& goto :run
+if /I "%CHOICE%"=="5" set CMD=describe& goto :run
+if /I "%CHOICE%"=="6" set CMD=all --limit 10& goto :run
+if /I "%CHOICE%"=="7" set CMD=all& goto :run
+if /I "%CHOICE%"=="8" set CMD=publish --dry-run& goto :run
+if /I "%CHOICE%"=="9" set CMD=publish& goto :confirm_publish
+if /I "%CHOICE%"=="O" start "" "%CD%\output"& goto :menu
+if /I "%CHOICE%"=="Q" goto :done
+
+echo.
+echo 잘못된 선택입니다.
+timeout /t 2 /nobreak >nul
+goto :menu
+
+:confirm_publish
+echo.
+echo [주의] 실제 Supabase DB에 데이터를 반영합니다.
+set /p CONFIRM=계속하려면 YES 입력: 
+if /I not "%CONFIRM%"=="YES" goto :menu
+goto :run
+
+:run
+echo.
+echo ----------------------------------------------------
+echo 실행: python main.py %CMD%
+echo ----------------------------------------------------
+echo.
+python main.py %CMD%
+if errorlevel 1 goto :error
+
+echo.
+echo [완료] %CMD%
+echo 결과 위치: %CD%\output
+echo.
+pause
+goto :menu
+
+:error
+echo.
+echo [실패] DataCollector 실행 중 오류가 발생했습니다.
+pause
+exit /b 1
+
+:error_code
+echo.
+echo [실패] 종료 코드: %EXIT_CODE%
+pause
+exit /b %EXIT_CODE%
+
+:done
 endlocal
