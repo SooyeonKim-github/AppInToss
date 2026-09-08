@@ -1,10 +1,10 @@
 from analyzers.kakao_signal_classifier import KakaoSignalClassifier
 
 
-def test_local_plus_blog_evidence_can_be_strong_probable():
+def test_local_plus_blog_and_direct_clue_can_be_strong_probable():
     cafe = {
         "cafe_id": "1",
-        "name": "테스트카페",
+        "name": "루프탑테스트카페",
         "category": "음식점 > 카페",
         "region_code": "YEOUIDO",
         "latitude": "37.5300",
