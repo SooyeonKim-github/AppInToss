@@ -4,9 +4,13 @@ from utils import haversine_m, normalize_address, normalize_name
 
 
 class CandidateDeduplicator:
-    """Kakao/Naver 후보를 canonical cafe 단위로 병합한다."""
+    """후보를 canonical cafe 단위로 병합하고 검색 적중 신뢰도를 계산한다."""
 
-    def deduplicate(self, rows: list[dict]) -> list[dict]:
+    def deduplicate(
+        self,
+        rows: list[dict],
+        region_query_totals: dict[str, int] | None = None,
+    ) -> list[dict]:
         clusters: list[list[dict]] = []
         kakao_index: dict[str, int] = {}
         exact_index: dict[tuple[str, str], int] = {}
@@ -36,7 +40,8 @@ class CandidateDeduplicator:
             if name_key and addr_key:
                 exact_index[(name_key, addr_key)] = cluster_idx
 
-        return [self._merge(cluster, idx + 1) for idx, cluster in enumerate(clusters)]
+        totals = region_query_totals or {}
+        return [self._merge(cluster, idx + 1, totals) for idx, cluster in enumerate(clusters)]
 
     @staticmethod
     def _find_nearby_match(row: dict, clusters: list[list[dict]]) -> int | None:
@@ -64,12 +69,15 @@ class CandidateDeduplicator:
         return None
 
     @staticmethod
-    def _merge(cluster: list[dict], cafe_id: int) -> dict:
+    def _merge(cluster: list[dict], cafe_id: int, region_query_totals: dict[str, int]) -> dict:
         representative = next((r for r in cluster if r.get("source") == "KAKAO"), cluster[0])
         providers = sorted({r.get("source", "") for r in cluster if r.get("source")})
         queries = sorted({r.get("search_query", "") for r in cluster if r.get("search_query")})
         regions = [r.get("region_code", "") for r in cluster if r.get("region_code")]
         region_code = max(set(regions), key=regions.count) if regions else ""
+        matched_query_count = len(queries)
+        region_query_total = int(region_query_totals.get(region_code, matched_query_count or 1))
+        query_hit_ratio = matched_query_count / max(region_query_total, 1)
 
         def first_nonempty(key: str) -> str:
             for candidate in [representative, *cluster]:
@@ -88,10 +96,16 @@ class CandidateDeduplicator:
             "latitude": first_nonempty("latitude"),
             "longitude": first_nonempty("longitude"),
             "region_code": region_code,
+            "region_resolution_source": first_nonempty("region_resolution_source"),
+            "region_distance_m": first_nonempty("region_distance_m"),
+            "region_resolution_confidence": first_nonempty("region_resolution_confidence"),
             "kakao_place_id": next((r.get("source_place_id", "") for r in cluster if r.get("source") == "KAKAO"), ""),
             "kakao_url": next((r.get("source_url", "") for r in cluster if r.get("source") == "KAKAO"), ""),
             "naver_url": next((r.get("source_url", "") for r in cluster if r.get("source") == "NAVER"), ""),
             "providers": "|".join(providers),
             "matched_queries": "|".join(queries),
+            "matched_query_count": matched_query_count,
+            "region_query_total": region_query_total,
+            "query_hit_ratio": round(query_hit_ratio, 3),
             "raw_match_count": len(cluster),
         }
