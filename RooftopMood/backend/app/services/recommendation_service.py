@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from math import cos, radians
+from urllib.parse import quote
 
 from app.repositories.cafe_repository import CafeRepository
 from app.schemas.recommendation import RecommendationItem, TodaySunsetInfo
@@ -54,6 +55,14 @@ class RecommendationService:
             return float(raw), float(confidence or 0.0)
         except (TypeError, ValueError):
             return None, 0.0
+
+    @staticmethod
+    def _kakao_map_url(cafe: dict) -> str:
+        for key in ("kakaoMapUrl", "placeUrl", "place_url", "sourceUrl", "source_url"):
+            value = cafe.get(key)
+            if value and "kakao" in str(value).lower():
+                return str(value)
+        return f"https://map.kakao.com/link/search/{quote(str(cafe.get('name', '카페')))}"
 
     def _cafe_sunset(self, cafe: dict, reference_sunset: SunsetResult) -> SunsetResult:
         try:
@@ -151,9 +160,10 @@ class RecommendationService:
             score=score,
             tags=tags[:3],
             imageUrl=cafe.get("imageUrl"),
+            kakaoMapUrl=self._kakao_map_url(cafe),
         )
 
-    def recommend(self, view: str, region: str, sunset: SunsetResult, sunset_condition_score: int, limit: int = 3) -> list[RecommendationItem]:
+    def recommend(self, view: str, region: str, sunset: SunsetResult, sunset_condition_score: int, limit: int = 5) -> list[RecommendationItem]:
         cafes = self.repository.find_by_view_region(view, region)
         ranked = sorted(
             ((cafe, self._score(cafe, view, sunset, sunset_condition_score)) for cafe in cafes),
@@ -162,7 +172,7 @@ class RecommendationService:
         )
         return [self._to_item(cafe, score, sunset, view) for cafe, score in ranked[:limit]]
 
-    def sunset_best(self, sunset: SunsetResult, sunset_condition_score: int) -> RecommendationItem:
+    def sunset_best(self, sunset: SunsetResult, sunset_condition_score: int, limit: int = 5) -> list[RecommendationItem]:
         cafes = self.repository.all()
         ranked = sorted(
             (
@@ -175,8 +185,7 @@ class RecommendationService:
         )
         if not ranked:
             raise ValueError("추천 가능한 카페가 없습니다.")
-        cafe, score = ranked[0]
-        return self._to_item(cafe, score, sunset, None)
+        return [self._to_item(cafe, score, sunset, None) for cafe, score in ranked[:limit]]
 
     def cafe_today_sunset_info(self, cafe: dict, sunset: SunsetResult) -> TodaySunsetInfo:
         return self._today_sunset_info(cafe, sunset)
