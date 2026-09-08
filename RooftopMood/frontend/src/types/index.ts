@@ -49,7 +49,7 @@ export type TodaySunsetInfo = {
   confidence: number;
 };
 
-export type PhotoStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type PhotoStatus = "PENDING" | "APPROVED";
 
 export type Recommendation = {
   id: number;
@@ -69,7 +69,7 @@ export type Recommendation = {
 
 export type PhotoUploadResponse = {
   cafeId: number;
-  imageUrl: string;
+  imageUrl?: string | null;
   status: "PENDING";
   message: string;
 };
