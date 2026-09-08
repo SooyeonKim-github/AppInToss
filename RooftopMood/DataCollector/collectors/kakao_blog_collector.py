@@ -6,6 +6,7 @@ from typing import Any
 
 import requests
 
+from collectors.kakao_local_collector import KakaoAPIError
 from utils import clean_html
 
 
@@ -42,13 +43,32 @@ class KakaoBlogCollector:
                 },
                 timeout=self.timeout,
             )
-            response.raise_for_status()
+            self._raise_for_status(response)
             payload = response.json()
             for item in payload.get("documents", []):
                 results.append(self._normalize(item))
             if payload.get("meta", {}).get("is_end", True):
                 break
         return results
+
+    @staticmethod
+    def _raise_for_status(response: requests.Response) -> None:
+        if response.ok:
+            return
+        code = None
+        message = ""
+        try:
+            payload = response.json()
+            code = payload.get("code")
+            message = str(payload.get("msg") or payload.get("message") or "").strip()
+        except Exception:
+            pass
+        raise KakaoAPIError(
+            status_code=response.status_code,
+            code=code,
+            message=message,
+            response_text=response.text.strip(),
+        )
 
     @staticmethod
     def _normalize(item: dict[str, Any]) -> dict[str, Any]:
