@@ -1,0 +1,188 @@
+.recommendation-list {
+  display: grid;
+  gap: 22px;
+}
+
+.recommendation-card {
+  overflow: hidden;
+  border: 1px solid #efeae7;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(40, 28, 21, 0.06);
+}
+
+.recommendation-card.rank-1 {
+  border-color: #ffc5b1;
+  box-shadow: 0 16px 44px rgba(225, 99, 64, 0.13);
+}
+
+.recommendation-card .recommendation-image {
+  height: 205px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(145deg, #fff3eb, #f8e8dc 55%, #eee8e3);
+}
+
+.recommendation-card.rank-1 .recommendation-image {
+  height: 238px;
+}
+
+.recommendation-card .recommendation-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recommendation-card .rank-badge {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  z-index: 2;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(34, 28, 25, 0.84);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  backdrop-filter: blur(8px);
+}
+
+.recommendation-card.rank-1 .rank-badge {
+  background: #24201e;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.14);
+}
+
+.photo-empty-state {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 26px 20px 22px;
+  text-align: center;
+}
+
+.photo-icon {
+  margin-bottom: 8px;
+  font-size: 28px;
+}
+
+.photo-empty-state strong {
+  font-size: 15px;
+  letter-spacing: -0.025em;
+}
+
+.photo-empty-state p {
+  margin: 6px 0 14px;
+  color: #8e817a;
+  font-size: 12px;
+}
+
+.photo-upload-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #282321;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.photo-file-input {
+  display: none;
+}
+
+.recommendation-card .recommendation-body {
+  padding: 19px;
+}
+
+.recommendation-card.rank-1 .recommendation-body {
+  padding: 21px;
+}
+
+.recommendation-card .card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.recommendation-card .region-label {
+  margin: 0 0 4px;
+  color: #9a7f70;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.recommendation-card .card-title-row h3 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.035em;
+}
+
+.recommendation-card .score-pill {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fff0e9;
+  color: #dc6545;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.recommendation-card .view-description {
+  margin: 14px 0;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+.recommendation-card .today-sunset {
+  margin: 14px 0;
+}
+
+.kakao-map-button {
+  min-height: 48px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+  background: #fee500;
+  color: #251f1c;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.kakao-map-button > span:last-child {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.recommendation-heading .ranking-kicker {
+  margin: 0 0 6px;
+  color: #e76848;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+@media (max-width: 380px) {
+  .recommendation-card .recommendation-image {
+    height: 190px;
+  }
+
+  .recommendation-card.rank-1 .recommendation-image {
+    height: 220px;
+  }
+
+  .recommendation-card .score-pill {
+    max-width: 92px;
+    text-align: center;
+  }
+}
