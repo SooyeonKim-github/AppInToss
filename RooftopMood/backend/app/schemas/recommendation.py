@@ -26,6 +26,8 @@ class RecommendationItem(BaseModel):
     score: int
     tags: list[str]
     imageUrl: str | None = None
+    photoStatus: str | None = None
+    canUploadPhoto: bool = True
     kakaoMapUrl: str | None = None
 
 
