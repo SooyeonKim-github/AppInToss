@@ -4,6 +4,7 @@ if not exist .env (
   copy .env.example .env >nul
 )
 if not exist node_modules (
-  npm install
+  call npm install
+  if errorlevel 1 exit /b %errorlevel%
 )
-npm run dev
+call npm run dev
