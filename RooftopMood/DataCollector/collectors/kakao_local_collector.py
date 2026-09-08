@@ -7,6 +7,26 @@ from typing import Any
 import requests
 
 
+class KakaoAPIError(RuntimeError):
+    def __init__(self, status_code: int, code: Any = None, message: str = "", response_text: str = ""):
+        self.status_code = status_code
+        self.code = code
+        self.message = message
+        self.response_text = response_text
+        detail = f"HTTP {status_code}"
+        if code not in (None, ""):
+            detail += f" / code={code}"
+        if message:
+            detail += f" / msg={message}"
+        elif response_text:
+            detail += f" / body={response_text[:500]}"
+        super().__init__(detail)
+
+    @property
+    def is_auth_or_permission_error(self) -> bool:
+        return self.status_code in {401, 403}
+
+
 class KakaoLocalCollector:
     SEARCH_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
     ADDRESS_URL = "https://dapi.kakao.com/v2/local/search/address.json"
@@ -31,7 +51,7 @@ class KakaoLocalCollector:
                 },
                 timeout=self.timeout,
             )
-            response.raise_for_status()
+            self._raise_for_status(response)
             payload = response.json()
             for item in payload.get("documents", []):
                 results.append(self._normalize(item, query=query, region_code=region_code))
@@ -49,11 +69,30 @@ class KakaoLocalCollector:
             params={"query": address},
             timeout=self.timeout,
         )
-        response.raise_for_status()
+        self._raise_for_status(response)
         docs = response.json().get("documents", [])
         if not docs:
             return None, None
         return float(docs[0]["y"]), float(docs[0]["x"])
+
+    @staticmethod
+    def _raise_for_status(response: requests.Response) -> None:
+        if response.ok:
+            return
+        code = None
+        message = ""
+        try:
+            payload = response.json()
+            code = payload.get("code")
+            message = str(payload.get("msg") or payload.get("message") or "").strip()
+        except Exception:
+            payload = None
+        raise KakaoAPIError(
+            status_code=response.status_code,
+            code=code,
+            message=message,
+            response_text=response.text.strip(),
+        )
 
     @staticmethod
     def _normalize(item: dict[str, Any], query: str, region_code: str) -> dict[str, Any]:
