@@ -20,7 +20,7 @@ if not exist .env (
     copy .env.example .env >nul
     echo.
     echo [RooftopMood] DataCollector\.env 파일을 생성했습니다.
-    echo KAKAO_REST_API_KEY / NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 값을 입력한 뒤 다시 실행해주세요.
+    echo KAKAO_REST_API_KEY / NAVER_API_HUB_CLIENT_ID / NAVER_API_HUB_CLIENT_SECRET 값을 입력한 뒤 다시 실행해주세요.
     echo.
     pause
     exit /b 1
