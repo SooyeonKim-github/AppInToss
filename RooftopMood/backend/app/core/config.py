@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     photo_max_bytes: int = 10 * 1024 * 1024
     photo_max_side_px: int = 1600
     photo_webp_quality: int = 85
+    admin_api_key: str | None = None
 
     weather_mode: str = "open_meteo"
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
