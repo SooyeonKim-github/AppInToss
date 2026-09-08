@@ -22,7 +22,7 @@ export function fetchRecommendations(view: ViewCode, region: string) {
 }
 
 export function fetchSunsetBest() {
-  return apiGet<{ recommendation: Recommendation }>(
+  return apiGet<{ recommendations: Recommendation[] }>(
     "/recommendations/sunset-best",
   );
 }
