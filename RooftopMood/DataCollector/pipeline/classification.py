@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from analyzers.other_view_discovery import OtherViewDiscovery
-from analyzers.rooftop_classifier import RooftopClassifier
-from analyzers.view_classifier import ViewClassifier
+from analyzers.kakao_signal_classifier import KakaoSignalClassifier
 from settings import BASE_DIR
 from utils import read_csv, write_csv
 
@@ -22,51 +20,50 @@ for code in ("han_river", "city", "palace", "forest"):
     ])
 
 REVIEW_FIELDS = CLASSIFICATION_FIELDS + ["review_reasons"]
+SIGNAL_FIELDS = [
+    "cafe_id", "cafe_name", "region_code", "raw_match_count", "matched_queries",
+    "rooftop_query_hits", "han_river_query_hits", "city_query_hits", "palace_query_hits", "forest_query_hits",
+]
 DISCOVERY_FIELDS = ["view_candidate", "cafe_count", "evidence_count", "sample_evidence", "suggested_action"]
 
 
 class ClassificationPipeline:
+    """Kakao 검색 적중 신호만으로 Rooftop/View를 분류한다."""
+
     def run(self) -> tuple[list[dict], list[dict], list[dict]]:
         output_dir = BASE_DIR / "output"
         candidates_path = output_dir / "candidates_deduped.csv"
-        evidence_path = output_dir / "cafe_evidences.csv"
         if not candidates_path.exists():
             raise FileNotFoundError("candidates_deduped.csv가 없습니다. 먼저 discover를 실행하세요.")
-        if not evidence_path.exists():
-            raise FileNotFoundError("cafe_evidences.csv가 없습니다. 먼저 evidence를 실행하세요.")
 
         candidates = read_csv(candidates_path)
-        evidence_rows = read_csv(evidence_path)
+        classifier = KakaoSignalClassifier()
+        combined = classifier.classify_all(candidates)
+        signal_rows = [classifier.signal_summary(cafe) for cafe in candidates]
 
-        rooftop_rows = RooftopClassifier(BASE_DIR / "config" / "rooftop_keywords.yaml").classify_all(candidates, evidence_rows)
-        view_rows = ViewClassifier(BASE_DIR / "config" / "view_keywords.yaml").classify_all(candidates, evidence_rows)
-        view_by_id = {row["cafe_id"]: row for row in view_rows}
-
-        combined: list[dict] = []
         review_rows: list[dict] = []
-        for rooftop in rooftop_rows:
-            merged = dict(rooftop)
-            merged.update({k: v for k, v in view_by_id.get(rooftop["cafe_id"], {}).items() if k not in {"cafe_id", "cafe_name", "region_code"}})
-            combined.append(merged)
-
-            reasons = self._review_reasons(merged)
+        for row in combined:
+            reasons = self._review_reasons(row)
             if reasons:
-                review = dict(merged)
+                review = dict(row)
                 review["review_reasons"] = "|".join(reasons)
                 review_rows.append(review)
 
-        discovered = OtherViewDiscovery().discover(evidence_rows)
+        # Naver Blog evidence 제거 후에는 신규 기타 뷰 자동발견을 하지 않는다.
+        # 필요한 뷰는 config/search_queries.yaml에 검색어를 추가해 명시적으로 확장한다.
+        discovered: list[dict] = []
 
         write_csv(output_dir / "cafe_classification.csv", combined, CLASSIFICATION_FIELDS)
+        write_csv(output_dir / "kakao_signal_summary.csv", signal_rows, SIGNAL_FIELDS)
         write_csv(output_dir / "review_required.csv", review_rows, REVIEW_FIELDS)
         write_csv(output_dir / "discovered_views.csv", discovered, DISCOVERY_FIELDS)
 
         LOGGER.info(
-            "Classification cafes=%d | confirmed=%d | review_required=%d | other_view_candidates=%d",
+            "Kakao classification cafes=%d | confirmed=%d | probable=%d | review_required=%d",
             len(combined),
             sum(row.get("rooftop_status") == "CONFIRMED" for row in combined),
+            sum(row.get("rooftop_status") == "PROBABLE" for row in combined),
             len(review_rows),
-            len(discovered),
         )
         return combined, review_rows, discovered
 
@@ -74,18 +71,12 @@ class ClassificationPipeline:
     def _review_reasons(row: dict) -> list[str]:
         reasons: list[str] = []
         if row.get("rooftop_status") in {"PROBABLE", "REVIEW"}:
-            reasons.append("ROOFTOP_UNCERTAIN")
+            reasons.append("ROOFTOP_KAKAO_SIGNAL_ONLY")
         if float(row.get("rooftop_confidence", 0) or 0) < 0.65 and row.get("rooftop_status") != "REJECT":
             reasons.append("LOW_ROOFTOP_CONFIDENCE")
-        if int(row.get("rooftop_recent_negative", 0) or 0) == 1:
-            reasons.append("RECENT_NEGATIVE_EVIDENCE")
         for code in ("han_river", "city", "palace", "forest"):
             score = int(row.get(f"{code}_score", 0) or 0)
             confidence = float(row.get(f"{code}_confidence", 0) or 0)
-            positives = int(row.get(f"{code}_positive_evidence", 0) or 0)
-            negatives = int(row.get(f"{code}_negative_evidence", 0) or 0)
             if score >= 2 and confidence < 0.6:
                 reasons.append(f"LOW_{code.upper()}_CONFIDENCE")
-            if positives and negatives:
-                reasons.append(f"CONFLICT_{code.upper()}")
         return reasons
