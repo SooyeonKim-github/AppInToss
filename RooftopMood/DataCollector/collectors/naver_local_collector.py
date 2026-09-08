@@ -9,22 +9,33 @@ from utils import clean_html
 
 
 class NaverLocalCollector:
-    SEARCH_URL = "https://openapi.naver.com/v1/search/local.json"
-
-    def __init__(self, client_id: str, client_secret: str, timeout: float = 10.0):
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        timeout: float = 10.0,
+        base_url: str = "https://naverapihub.apigw.ntruss.com",
+    ):
         self.timeout = timeout
+        self.search_url = f"{base_url.rstrip('/')}/search/v1/local"
         self.session = requests.Session()
         self.session.headers.update(
             {
-                "X-Naver-Client-Id": client_id,
-                "X-Naver-Client-Secret": client_secret,
+                "X-NCP-APIGW-API-KEY-ID": client_id,
+                "X-NCP-APIGW-API-KEY": client_secret,
             }
         )
 
     def search(self, query: str, region_code: str) -> list[dict[str, Any]]:
         response = self.session.get(
-            self.SEARCH_URL,
-            params={"query": query, "display": 5, "start": 1, "sort": "random"},
+            self.search_url,
+            params={
+                "query": query,
+                "display": 5,
+                "start": 1,
+                "sort": "random",
+                "format": "json",
+            },
             timeout=self.timeout,
         )
         response.raise_for_status()
