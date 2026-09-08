@@ -12,9 +12,11 @@ load_dotenv(BASE_DIR / ".env")
 
 @dataclass(frozen=True)
 class Settings:
-    # Kakao-only MVP
+    # Kakao Local + Daum Search API는 같은 REST API 키를 사용합니다.
     kakao_rest_api_key: str = os.getenv("KAKAO_REST_API_KEY", "").strip()
     request_timeout_sec: float = float(os.getenv("REQUEST_TIMEOUT_SEC", "10"))
+    kakao_blog_display: int = int(os.getenv("KAKAO_BLOG_DISPLAY", "10"))
+    kakao_blog_max_pages: int = int(os.getenv("KAKAO_BLOG_MAX_PAGES", "1"))
 
     # DataCollector 결과를 운영 DB로 publish 할 때만 사용합니다.
     supabase_url: str = os.getenv("SUPABASE_URL", "").strip()
