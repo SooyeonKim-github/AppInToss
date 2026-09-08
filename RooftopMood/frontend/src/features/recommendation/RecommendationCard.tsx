@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
-import type { Recommendation } from "../../types";
+import { uploadCafePhoto } from "../../api/rooftopMood.api";
+import type { PhotoStatus, Recommendation } from "../../types";
 import "./recommendation-card.css";
 
 const RANK_LABELS: Record<number, string> = {
@@ -21,10 +22,17 @@ export function RecommendationCard({
   const sunset = item.todaySunsetInfo;
   const inputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(item.imageUrl ?? null);
+  const [photoStatus, setPhotoStatus] = useState<PhotoStatus | null>(item.photoStatus ?? null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalImageUrl(item.imageUrl ?? null);
-  }, [item.id, item.imageUrl]);
+    setPhotoStatus(item.photoStatus ?? null);
+    setUploadError(null);
+    setUploadMessage(null);
+  }, [item.id, item.imageUrl, item.photoStatus]);
 
   useEffect(() => {
     return () => {
@@ -41,43 +49,109 @@ export function RecommendationCard({
     [item.kakaoMapUrl, item.name],
   );
 
-  function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
+  const canUpload = (item.canUploadPhoto ?? !item.imageUrl) && photoStatus === null;
+
+  async function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
+    event.target.value = "";
     if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setUploadError("JPG, PNG, WEBP 사진만 올릴 수 있어요.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("사진은 최대 10MB까지 올릴 수 있어요.");
+      return;
+    }
 
     if (localImageUrl?.startsWith("blob:")) {
       URL.revokeObjectURL(localImageUrl);
     }
 
-    setLocalImageUrl(URL.createObjectURL(file));
+    const previewUrl = URL.createObjectURL(file);
+    setLocalImageUrl(previewUrl);
+    setUploading(true);
+    setUploadError(null);
+    setUploadMessage(null);
+
+    try {
+      const result = await uploadCafePhoto(item.id, file);
+      setPhotoStatus(result.status);
+      setUploadMessage(result.message);
+    } catch (error) {
+      URL.revokeObjectURL(previewUrl);
+      setLocalImageUrl(item.imageUrl ?? null);
+      setUploadError(
+        error instanceof Error ? error.message : "사진을 올리지 못했어요.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function renderPhotoArea() {
+    if (localImageUrl) {
+      return (
+        <>
+          <img src={localImageUrl} alt={`${item.name} 루프탑 뷰`} />
+          {uploading ? <span className="photo-review-badge">업로드 중…</span> : null}
+          {!uploading && photoStatus === "PENDING" ? (
+            <span className="photo-review-badge">확인 중</span>
+          ) : null}
+        </>
+      );
+    }
+
+    if (photoStatus === "PENDING") {
+      return (
+        <div className="photo-empty-state photo-pending-state">
+          <span className="photo-icon">🌇</span>
+          <strong>사진을 확인하고 있어요</strong>
+          <p>승인되면 이 자리에 대표 사진으로 보여드릴게요</p>
+        </div>
+      );
+    }
+
+    if (!canUpload) {
+      return (
+        <div className="photo-empty-state photo-pending-state">
+          <span className="photo-icon">📷</span>
+          <strong>사진 확인이 필요해요</strong>
+          <p>관리자 확인 후 다시 보여드릴게요</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="photo-empty-state">
+        <span className="photo-icon">📷</span>
+        <strong>사진이 딱 1장만 등록돼요</strong>
+        <p>이 카페의 뷰를 가장 먼저 남겨보세요</p>
+        <button
+          type="button"
+          className="photo-upload-button"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+        >
+          사진 올리기
+        </button>
+        <input
+          ref={inputRef}
+          className="photo-file-input"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handlePhotoChange}
+        />
+        {uploadError ? <p className="photo-upload-error">{uploadError}</p> : null}
+      </div>
+    );
   }
 
   return (
     <article className={`recommendation-card rank-${rank ?? 0}`}>
       <div className="recommendation-image">
-        {localImageUrl ? (
-          <img src={localImageUrl} alt={`${item.name} 루프탑 뷰`} />
-        ) : (
-          <div className="photo-empty-state">
-            <span className="photo-icon">📷</span>
-            <strong>사진이 딱 1장만 등록돼요</strong>
-            <p>이 카페의 뷰를 가장 먼저 남겨보세요</p>
-            <button
-              type="button"
-              className="photo-upload-button"
-              onClick={() => inputRef.current?.click()}
-            >
-              사진 올리기
-            </button>
-            <input
-              ref={inputRef}
-              className="photo-file-input"
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoChange}
-            />
-          </div>
-        )}
+        {renderPhotoArea()}
         {rank ? <span className="rank-badge">{RANK_LABELS[rank] ?? `${rank}위`}</span> : null}
       </div>
 
@@ -93,6 +167,7 @@ export function RecommendationCard({
           <div className="score-pill">노을 궁합 {item.score}점</div>
         </div>
 
+        {uploadMessage ? <p className="photo-upload-message">{uploadMessage}</p> : null}
         <p className="view-description">{item.viewDescription}</p>
 
         <div className={`today-sunset ${sunset.visible ? "visible" : "muted"}`}>
