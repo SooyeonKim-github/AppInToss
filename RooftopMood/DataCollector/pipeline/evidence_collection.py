@@ -6,6 +6,7 @@ from collections import defaultdict
 import yaml
 
 from collectors.kakao_blog_collector import KakaoBlogCollector
+from collectors.kakao_local_collector import KakaoAPIError
 from settings import BASE_DIR, settings
 from utils import normalize_name, read_csv, write_csv
 
@@ -74,6 +75,14 @@ class EvidenceCollectionPipeline:
                             size=settings.kakao_blog_display,
                             max_pages=settings.kakao_blog_max_pages,
                         )
+                    except KakaoAPIError as exc:
+                        if exc.is_auth_or_permission_error:
+                            raise RuntimeError(
+                                "Kakao Daum Blog Search 인증/권한 오류입니다. "
+                                f"{exc}. Kakao Developers의 REST API 키/서비스 설정을 확인하세요."
+                            ) from exc
+                        LOGGER.exception("  Daum Blog 검색 실패 [%s]: %s", query, exc)
+                        continue
                     except Exception as exc:
                         LOGGER.exception("  Daum Blog 검색 실패 [%s]: %s", query, exc)
                         continue
