@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Recommendation } from "../../types";
+import "./recommendation-card.css";
 
 const RANK_LABELS: Record<number, string> = {
   1: "🥇 1위",
