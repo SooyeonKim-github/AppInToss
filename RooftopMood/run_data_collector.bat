@@ -37,26 +37,32 @@ if not "%~1"=="" (
 :menu
 cls
 echo ====================================================
-echo          RooftopMood DataCollector - Kakao Only
+echo    RooftopMood DataCollector - Kakao Local + Blog V2
 echo ====================================================
 echo.
-echo  [1] 후보 카페 수집              discover
-echo  [2] 루프탑/뷰 분류               classify
-echo  [3] 설명 및 DB-ready 생성        describe
-echo  [4] 전체 파이프라인              all
-echo  [5] Supabase 적재 미리보기       publish --dry-run
-echo  [6] Supabase 실제 적재           publish
+echo  [1] 후보 카페 수집               discover
+echo  [2] 블로그 근거 10개 테스트       evidence --limit 10
+echo  [3] 전체 블로그 근거 수집          evidence
+echo  [4] 루프탑/뷰 분류                classify
+echo  [5] 설명 및 DB-ready 생성         describe
+echo  [6] 10개 테스트 전체 파이프라인   all --limit 10
+echo  [7] 전체 파이프라인               all
+echo  [8] Supabase 적재 미리보기        publish --dry-run
+echo  [9] Supabase 실제 적재            publish
 echo  [O] output 폴더 열기
 echo  [Q] 종료
 echo.
 set /p CHOICE=선택: 
 
 if /I "%CHOICE%"=="1" set CMD=discover& goto :run
-if /I "%CHOICE%"=="2" set CMD=classify& goto :run
-if /I "%CHOICE%"=="3" set CMD=describe& goto :run
-if /I "%CHOICE%"=="4" set CMD=all& goto :run
-if /I "%CHOICE%"=="5" set CMD=publish --dry-run& goto :run
-if /I "%CHOICE%"=="6" set CMD=publish& goto :confirm_publish
+if /I "%CHOICE%"=="2" set CMD=evidence --limit 10& goto :run
+if /I "%CHOICE%"=="3" set CMD=evidence& goto :run
+if /I "%CHOICE%"=="4" set CMD=classify& goto :run
+if /I "%CHOICE%"=="5" set CMD=describe& goto :run
+if /I "%CHOICE%"=="6" set CMD=all --limit 10& goto :run
+if /I "%CHOICE%"=="7" set CMD=all& goto :run
+if /I "%CHOICE%"=="8" set CMD=publish --dry-run& goto :run
+if /I "%CHOICE%"=="9" set CMD=publish& goto :confirm_publish
 if /I "%CHOICE%"=="O" start "" "%CD%\output"& goto :menu
 if /I "%CHOICE%"=="Q" goto :done
 
