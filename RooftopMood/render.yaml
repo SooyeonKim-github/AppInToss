@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: rooftop-mood-api
+    runtime: python
+    rootDir: RooftopMood/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATA_BACKEND
+        value: supabase
+      - key: SUPABASE_STORAGE_BUCKET
+        value: cafe-photos
+      - key: PHOTO_UPLOAD_ENABLED
+        value: "true"
+      - key: WEATHER_MODE
+        value: open_meteo
+      - key: OPEN_METEO_BASE_URL
+        value: https://api.open-meteo.com/v1/forecast
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
