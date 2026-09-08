@@ -26,6 +26,7 @@ class RecommendationItem(BaseModel):
     score: int
     tags: list[str]
     imageUrl: str | None = None
+    kakaoMapUrl: str | None = None
 
 
 class RecommendationListResponse(BaseModel):
@@ -33,4 +34,4 @@ class RecommendationListResponse(BaseModel):
 
 
 class SunsetBestResponse(BaseModel):
-    recommendation: RecommendationItem
+    recommendations: list[RecommendationItem]
