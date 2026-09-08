@@ -49,6 +49,8 @@ export type TodaySunsetInfo = {
   confidence: number;
 };
 
+export type PhotoStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export type Recommendation = {
   id: number;
   name: string;
@@ -60,5 +62,14 @@ export type Recommendation = {
   score: number;
   tags: string[];
   imageUrl?: string | null;
+  photoStatus?: PhotoStatus | null;
+  canUploadPhoto?: boolean;
   kakaoMapUrl?: string | null;
+};
+
+export type PhotoUploadResponse = {
+  cafeId: number;
+  imageUrl: string;
+  status: "PENDING";
+  message: string;
 };
