@@ -10,6 +10,8 @@ DATA_FILE = Path(__file__).resolve().parents[3] / "data" / "seoul_rooftop_cafes.
 
 
 class CafeRepository:
+    SIGNED_URL_TTL_SEC = 3600
+
     def __init__(self) -> None:
         self._use_supabase = settings.data_backend.lower() == "supabase"
         self._cafes: list[dict[str, Any]] = []
@@ -32,14 +34,45 @@ class CafeRepository:
             "Authorization": f"Bearer {key}",
         }
 
+    def _create_signed_urls(self, paths: list[str]) -> dict[str, str]:
+        if not paths or not settings.supabase_url:
+            return {}
+
+        bucket = settings.supabase_storage_bucket
+        try:
+            response = httpx.post(
+                f"{settings.supabase_url.rstrip('/')}/storage/v1/object/sign/{bucket}",
+                headers={**self._headers, "Content-Type": "application/json"},
+                json={"expiresIn": self.SIGNED_URL_TTL_SEC, "paths": paths},
+                timeout=10.0,
+            )
+            response.raise_for_status()
+        except httpx.HTTPError:
+            return {}
+
+        signed: dict[str, str] = {}
+        for item in response.json():
+            path = item.get("path")
+            relative_url = item.get("signedURL") or item.get("signedUrl")
+            if path and relative_url:
+                if str(relative_url).startswith("http"):
+                    signed[path] = str(relative_url)
+                else:
+                    signed[path] = (
+                        f"{settings.supabase_url.rstrip('/')}/storage/v1"
+                        f"{relative_url}"
+                    )
+        return signed
+
     @staticmethod
-    def _to_cafe(row: dict[str, Any]) -> dict[str, Any]:
+    def _to_cafe(row: dict[str, Any], signed_urls: dict[str, str]) -> dict[str, Any]:
         photos = row.get("cafe_photos") or []
         approved_photo = next(
             (photo for photo in photos if photo.get("status") == "APPROVED"),
             None,
         )
         existing_photo = photos[0] if photos else None
+        approved_path = approved_photo.get("storage_path") if approved_photo else None
 
         return {
             "id": row["id"],
@@ -57,7 +90,7 @@ class CafeRepository:
             "cafeQualityScore": row.get("cafe_quality_score", 0),
             "viewDescription": row.get("view_description") or "",
             "bestSeatTip": row.get("best_seat_tip") or "",
-            "imageUrl": approved_photo.get("image_url") if approved_photo else None,
+            "imageUrl": signed_urls.get(approved_path) if approved_path else None,
             "photoStatus": existing_photo.get("status") if existing_photo else None,
             "canUploadPhoto": existing_photo is None,
             "kakaoMapUrl": row.get("kakao_map_url"),
@@ -81,14 +114,23 @@ class CafeRepository:
             f"{settings.supabase_url.rstrip('/')}/rest/v1/cafes",
             headers=self._headers,
             params={
-                "select": "*,cafe_photos(image_url,status)",
+                "select": "*,cafe_photos(storage_path,status)",
                 "active": "eq.true",
                 "order": "id.asc",
             },
             timeout=10.0,
         )
         response.raise_for_status()
-        return [self._to_cafe(row) for row in response.json()]
+        rows = response.json()
+
+        approved_paths = [
+            photo["storage_path"]
+            for row in rows
+            for photo in (row.get("cafe_photos") or [])
+            if photo.get("status") == "APPROVED" and photo.get("storage_path")
+        ]
+        signed_urls = self._create_signed_urls(approved_paths)
+        return [self._to_cafe(row, signed_urls) for row in rows]
 
     def all(self) -> list[dict[str, Any]]:
         if self._use_supabase:
