@@ -1,0 +1,54 @@
+queries:
+  - region: SEONGSU
+    terms:
+      - "성수 루프탑 카페"
+      - "성수 옥상 카페"
+      - "성수 뷰 좋은 카페"
+      - "성수 서울숲뷰 카페"
+  - region: HANNAM
+    terms:
+      - "한남 루프탑 카페"
+      - "한남 한강뷰 카페"
+      - "한남 노을 카페"
+  - region: ITAEWON
+    terms:
+      - "이태원 루프탑 카페"
+      - "이태원 뷰 좋은 카페"
+      - "이태원 노을 카페"
+  - region: HAPJEONG_MANGWON
+    terms:
+      - "합정 루프탑 카페"
+      - "망원 루프탑 카페"
+      - "망원 한강뷰 카페"
+      - "합정 노을 카페"
+  - region: JONGNO_EULJIRO
+    terms:
+      - "종로 루프탑 카페"
+      - "을지로 루프탑 카페"
+      - "종로 시티뷰 카페"
+  - region: GANGNAM
+    terms:
+      - "강남 루프탑 카페"
+      - "강남 시티뷰 카페"
+  - region: YEOUIDO
+    terms:
+      - "여의도 루프탑 카페"
+      - "여의도 한강뷰 카페"
+      - "여의도 노을 카페"
+  - region: YONGSAN_SAMGAKJI
+    terms:
+      - "용산 루프탑 카페"
+      - "삼각지 루프탑 카페"
+      - "용산 노을 카페"
+  - region: HAEBANGCHON_HUAM
+    terms:
+      - "해방촌 루프탑 카페"
+      - "후암동 루프탑 카페"
+      - "해방촌 노을 카페"
+      - "해방촌 시티뷰 카페"
+  - region: BUKCHON_SEOCHON
+    terms:
+      - "북촌 루프탑 카페"
+      - "서촌 루프탑 카페"
+      - "경복궁뷰 카페"
+      - "북촌 궁궐뷰 카페"

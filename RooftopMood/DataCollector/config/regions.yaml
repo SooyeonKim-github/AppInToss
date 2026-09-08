@@ -1,0 +1,31 @@
+regions:
+  SEONGSU:
+    name: "성수"
+    address_keywords: ["성동구", "성수동"]
+  HANNAM:
+    name: "한남"
+    address_keywords: ["한남동"]
+  ITAEWON:
+    name: "이태원"
+    address_keywords: ["이태원동"]
+  HAPJEONG_MANGWON:
+    name: "합정·망원"
+    address_keywords: ["합정동", "망원동"]
+  JONGNO_EULJIRO:
+    name: "종로·을지로"
+    address_keywords: ["종로구", "을지로"]
+  GANGNAM:
+    name: "강남"
+    address_keywords: ["강남구"]
+  YEOUIDO:
+    name: "여의도"
+    address_keywords: ["여의도동", "영등포구"]
+  YONGSAN_SAMGAKJI:
+    name: "용산·삼각지"
+    address_keywords: ["용산동", "한강로", "삼각지", "원효로"]
+  HAEBANGCHON_HUAM:
+    name: "해방촌·후암"
+    address_keywords: ["용산동2가", "후암동", "신흥로"]
+  BUKCHON_SEOCHON:
+    name: "북촌·서촌"
+    address_keywords: ["북촌", "삼청동", "가회동", "서촌", "통의동", "누하동", "효자동"]
