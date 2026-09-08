@@ -6,9 +6,12 @@ def test_same_kakao_id_is_merged():
         {"source": "KAKAO", "source_place_id": "1", "name": "테스트카페", "road_address": "서울 용산구 1", "latitude": "37.5", "longitude": "126.9", "region_code": "A", "search_query": "q1"},
         {"source": "KAKAO", "source_place_id": "1", "name": "테스트 카페", "road_address": "서울 용산구 1", "latitude": "37.5", "longitude": "126.9", "region_code": "A", "search_query": "q2"},
     ]
-    result = CandidateDeduplicator().deduplicate(rows)
+    result = CandidateDeduplicator().deduplicate(rows, {"A": 4})
     assert len(result) == 1
     assert result[0]["raw_match_count"] == 2
+    assert result[0]["matched_query_count"] == 2
+    assert result[0]["region_query_total"] == 4
+    assert result[0]["query_hit_ratio"] == 0.5
 
 
 def test_cross_provider_name_address_is_merged():
