@@ -44,7 +44,7 @@ class PhotoService:
             f"{settings.supabase_url.rstrip('/')}/rest/v1/cafe_photos",
             headers=self._headers,
             params={
-                "select": "id,image_url,status",
+                "select": "id,storage_path,status",
                 "cafe_id": f"eq.{cafe_id}",
                 "limit": "1",
             },
@@ -91,7 +91,7 @@ class PhotoService:
         except (UnidentifiedImageError, OSError, ValueError) as exc:
             raise PhotoUploadError("올바른 이미지 파일이 아니에요.") from exc
 
-    def _upload_storage(self, cafe_id: int, data: bytes) -> tuple[str, str]:
+    def _upload_storage(self, cafe_id: int, data: bytes) -> str:
         assert settings.supabase_url is not None
         bucket = settings.supabase_storage_bucket
         storage_path = f"{cafe_id}/cover.webp"
@@ -108,11 +108,7 @@ class PhotoService:
         if response.status_code in {400, 409}:
             raise PhotoUploadError("방금 다른 분이 먼저 사진을 등록했어요! 🌇", 409)
         response.raise_for_status()
-        public_url = (
-            f"{settings.supabase_url.rstrip('/')}/storage/v1/object/public/"
-            f"{bucket}/{storage_path}"
-        )
-        return storage_path, public_url
+        return storage_path
 
     def _delete_storage(self, storage_path: str) -> None:
         if not settings.supabase_url:
@@ -131,7 +127,6 @@ class PhotoService:
         self,
         cafe_id: int,
         storage_path: str,
-        image_url: str,
         uploaded_by: str | None,
         width: int,
         height: int,
@@ -147,7 +142,7 @@ class PhotoService:
             },
             json={
                 "cafe_id": cafe_id,
-                "image_url": image_url,
+                "image_url": None,
                 "storage_path": storage_path,
                 "uploaded_by": uploaded_by,
                 "status": "PENDING",
@@ -180,13 +175,12 @@ class PhotoService:
 
         original = await self._read_limited(file)
         webp, width, height = self._to_webp(original)
-        storage_path, image_url = self._upload_storage(cafe_id, webp)
+        storage_path = self._upload_storage(cafe_id, webp)
 
         try:
             row = self._insert_photo(
                 cafe_id=cafe_id,
                 storage_path=storage_path,
-                image_url=image_url,
                 uploaded_by=uploaded_by,
                 width=width,
                 height=height,
@@ -198,7 +192,7 @@ class PhotoService:
 
         return {
             "cafeId": cafe_id,
-            "imageUrl": image_url,
+            "imageUrl": None,
             "status": row["status"],
             "message": "사진이 등록됐어요. 확인 후 대표 사진으로 보여드릴게요 🌇",
         }
