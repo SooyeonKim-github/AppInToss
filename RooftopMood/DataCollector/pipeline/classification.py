@@ -34,13 +34,16 @@ DISCOVERY_FIELDS = ["view_candidate", "cafe_count", "evidence_count", "sample_ev
 class ClassificationPipeline:
     """Kakao Local + Daum Blog Evidence로 Rooftop/View를 보수적으로 분류한다."""
 
-    def run(self) -> tuple[list[dict], list[dict], list[dict]]:
+    def run(self, limit: int | None = None) -> tuple[list[dict], list[dict], list[dict]]:
         output_dir = BASE_DIR / "output"
         candidates_path = output_dir / "candidates_deduped.csv"
         if not candidates_path.exists():
             raise FileNotFoundError("candidates_deduped.csv가 없습니다. 먼저 discover를 실행하세요.")
 
         candidates = read_csv(candidates_path)
+        if limit:
+            candidates = candidates[:limit]
+
         evidence_path = output_dir / "evidence_summary.csv"
         evidence_rows = read_csv(evidence_path) if evidence_path.exists() else []
         evidence_by_id = {str(row.get("cafe_id", "")): row for row in evidence_rows}
