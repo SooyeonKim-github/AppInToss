@@ -55,6 +55,22 @@ grant all on public.cafes to service_role;
 grant all on public.cafe_photos to service_role;
 grant usage, select on all sequences in schema public to service_role;
 
+create policy "deny_direct_cafe_access"
+on public.cafes
+as restrictive
+for all
+to anon, authenticated
+using (false)
+with check (false);
+
+create policy "deny_direct_photo_access"
+on public.cafe_photos
+as restrictive
+for all
+to anon, authenticated
+using (false)
+with check (false);
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'cafe-photos',
