@@ -1,31 +1,80 @@
 regions:
   SEONGSU:
     name: "성수"
-    address_keywords: ["성동구", "성수동"]
+    center: {latitude: 37.5450, longitude: 127.0500}
+    search_radius_m: 3500
+    accept_radius_m: 3200
+    fallback_radius_m: 1200
+    address_keywords: ["성수동1가", "성수동2가"]
+
   HANNAM:
     name: "한남"
+    center: {latitude: 37.5345, longitude: 127.0005}
+    search_radius_m: 2300
+    accept_radius_m: 2200
+    fallback_radius_m: 900
     address_keywords: ["한남동"]
+
   ITAEWON:
     name: "이태원"
+    center: {latitude: 37.5347, longitude: 126.9943}
+    search_radius_m: 2300
+    accept_radius_m: 2200
+    fallback_radius_m: 900
     address_keywords: ["이태원동"]
+
   HAPJEONG_MANGWON:
     name: "합정·망원"
-    address_keywords: ["합정동", "망원동"]
+    center: {latitude: 37.5550, longitude: 126.9070}
+    search_radius_m: 3300
+    accept_radius_m: 3200
+    fallback_radius_m: 1200
+    address_keywords: ["합정동", "망원동", "서교동"]
+
   JONGNO_EULJIRO:
     name: "종로·을지로"
+    center: {latitude: 37.5700, longitude: 126.9890}
+    search_radius_m: 3800
+    accept_radius_m: 3600
+    fallback_radius_m: 1100
     address_keywords: ["종로구", "을지로"]
+
   GANGNAM:
     name: "강남"
+    center: {latitude: 37.5005, longitude: 127.0350}
+    search_radius_m: 7500
+    accept_radius_m: 7200
+    fallback_radius_m: 1500
     address_keywords: ["강남구"]
+
   YEOUIDO:
     name: "여의도"
-    address_keywords: ["여의도동", "영등포구"]
+    center: {latitude: 37.5219, longitude: 126.9245}
+    search_radius_m: 2700
+    accept_radius_m: 2500
+    fallback_radius_m: 1000
+    address_keywords: ["여의도동"]
+
   YONGSAN_SAMGAKJI:
     name: "용산·삼각지"
-    address_keywords: ["용산동", "한강로", "삼각지", "원효로"]
+    center: {latitude: 37.5348, longitude: 126.9735}
+    search_radius_m: 3200
+    accept_radius_m: 3000
+    fallback_radius_m: 1100
+    address_keywords: ["한강로1가", "한강로2가", "한강로3가", "용산동3가", "용산동5가", "용산동6가", "원효로1가", "원효로2가", "원효로3가", "원효로4가"]
+
   HAEBANGCHON_HUAM:
     name: "해방촌·후암"
+    center: {latitude: 37.5445, longitude: 126.9830}
+    search_radius_m: 2400
+    accept_radius_m: 2200
+    fallback_radius_m: 900
     address_keywords: ["용산동2가", "후암동", "신흥로"]
+
   BUKCHON_SEOCHON:
     name: "북촌·서촌"
-    address_keywords: ["북촌", "삼청동", "가회동", "서촌", "통의동", "누하동", "효자동"]
+    center: {latitude: 37.5790, longitude: 126.9780}
+    search_radius_m: 3300
+    accept_radius_m: 3100
+    fallback_radius_m: 1100
+    address_keywords: ["삼청동", "가회동", "통의동", "누하동", "효자동", "필운동", "체부동", "창성동", "옥인동", "청운동"]
