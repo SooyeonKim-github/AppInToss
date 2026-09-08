@@ -25,11 +25,15 @@ SUMMARY_FIELDS = [
 class EvidenceCollectionPipeline:
     def __init__(self):
         if not settings.has_naver:
-            raise RuntimeError("Naver API 키가 없습니다. DataCollector/.env에 NAVER_CLIENT_ID/SECRET을 설정하세요.")
+            raise RuntimeError(
+                "NAVER API HUB 키가 없습니다. DataCollector/.env에 "
+                "NAVER_API_HUB_CLIENT_ID/SECRET을 설정하세요."
+            )
         self.collector = NaverBlogCollector(
             settings.naver_client_id,
             settings.naver_client_secret,
             settings.request_timeout_sec,
+            settings.naver_api_hub_base_url,
         )
 
     def run(self, limit: int | None = None) -> tuple[list[dict], list[dict]]:
