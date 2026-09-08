@@ -1,0 +1,56 @@
+name: RooftopMood CI
+
+on:
+  push:
+    paths:
+      - "RooftopMood/**"
+      - ".github/workflows/rooftopmood-ci.yml"
+  pull_request:
+    paths:
+      - "RooftopMood/**"
+      - ".github/workflows/rooftopmood-ci.yml"
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: RooftopMood/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: RooftopMood/backend/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: pytest -q
+
+  data-collector:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: RooftopMood/DataCollector
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: RooftopMood/DataCollector/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: RooftopMood/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm install
+      - run: npm run build
