@@ -4,7 +4,7 @@ import logging
 
 import yaml
 
-from collectors.kakao_local_collector import KakaoLocalCollector
+from collectors.kakao_local_collector import KakaoAPIError, KakaoLocalCollector
 from pipeline.deduplicator import CandidateDeduplicator
 from settings import BASE_DIR, settings
 from utils import write_csv
@@ -43,6 +43,13 @@ class CandidateDiscoveryPipeline:
                 found = self.kakao.search(query, region_code)
                 raw.extend(found)
                 LOGGER.info("  Kakao: %d", len(found))
+            except KakaoAPIError as exc:
+                if exc.is_auth_or_permission_error:
+                    raise RuntimeError(
+                        "Kakao Local 인증/권한 오류입니다. "
+                        f"{exc}. Kakao Developers의 REST API 키 활성화/호출 허용 IP를 확인하세요."
+                    ) from exc
+                LOGGER.exception("  Kakao 실패: %s", exc)
             except Exception as exc:
                 LOGGER.exception("  Kakao 실패: %s", exc)
 
