@@ -37,11 +37,9 @@ class DescriptionGenerationPipeline:
     def run(self) -> tuple[list[dict], list[dict]]:
         output_dir = BASE_DIR / "output"
         candidates_path = output_dir / "candidates_deduped.csv"
-        evidence_path = output_dir / "cafe_evidences.csv"
         classification_path = output_dir / "cafe_classification.csv"
         for path, command in (
             (candidates_path, "discover"),
-            (evidence_path, "evidence"),
             (classification_path, "classify"),
         ):
             if not path.exists():
@@ -49,7 +47,11 @@ class DescriptionGenerationPipeline:
 
         candidates = read_csv(candidates_path)
         classifications = read_csv(classification_path)
-        evidence_rows = read_csv(evidence_path)
+
+        # Kakao-only V1에서는 블로그 evidence가 필수가 아니다.
+        # 과거 결과가 있으면 방향/랜드마크 보조 근거로만 활용하고, 없어도 정상 동작한다.
+        evidence_path = output_dir / "cafe_evidences.csv"
+        evidence_rows = read_csv(evidence_path) if evidence_path.exists() else []
 
         evidence_by_id: dict[str, list[dict]] = defaultdict(list)
         for row in evidence_rows:
