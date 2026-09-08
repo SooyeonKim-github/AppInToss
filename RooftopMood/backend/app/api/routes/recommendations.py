@@ -26,7 +26,7 @@ def get_recommendations(
     region: str = Query(..., min_length=2),
 ) -> RecommendationListResponse:
     sunset, condition_score = _context()
-    items = service.recommend(view, region, sunset, condition_score)
+    items = service.recommend(view, region, sunset, condition_score, limit=5)
     return RecommendationListResponse(recommendations=items)
 
 
@@ -34,7 +34,7 @@ def get_recommendations(
 def get_sunset_best() -> SunsetBestResponse:
     sunset, condition_score = _context()
     try:
-        item = service.sunset_best(sunset, condition_score)
+        items = service.sunset_best(sunset, condition_score, limit=5)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    return SunsetBestResponse(recommendation=item)
+    return SunsetBestResponse(recommendations=items)
