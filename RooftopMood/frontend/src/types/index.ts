@@ -60,4 +60,5 @@ export type Recommendation = {
   score: number;
   tags: string[];
   imageUrl?: string | null;
+  kakaoMapUrl?: string | null;
 };
