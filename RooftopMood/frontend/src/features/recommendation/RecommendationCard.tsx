@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import type { Recommendation } from "../../types";
 import "./recommendation-card.css";
 
@@ -40,7 +41,7 @@ export function RecommendationCard({
     [item.kakaoMapUrl, item.name],
   );
 
-  function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
