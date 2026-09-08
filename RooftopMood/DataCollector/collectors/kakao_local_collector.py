@@ -37,20 +37,32 @@ class KakaoLocalCollector:
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"KakaoAK {api_key}"})
 
-    def search(self, query: str, region_code: str, max_pages: int = 45) -> list[dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        region_code: str,
+        max_pages: int = 45,
+        *,
+        x: float | None = None,
+        y: float | None = None,
+        radius_m: int | None = None,
+    ) -> list[dict[str, Any]]:
         results: list[dict[str, Any]] = []
         for page in range(1, max_pages + 1):
-            response = self.session.get(
-                self.SEARCH_URL,
-                params={
-                    "query": query,
-                    "category_group_code": "CE7",
-                    "page": page,
-                    "size": 15,
-                    "sort": "accuracy",
-                },
-                timeout=self.timeout,
-            )
+            params: dict[str, Any] = {
+                "query": query,
+                "category_group_code": "CE7",
+                "page": page,
+                "size": 15,
+                "sort": "accuracy",
+            }
+            if x is not None and y is not None:
+                params["x"] = x
+                params["y"] = y
+                if radius_m is not None:
+                    params["radius"] = max(0, min(int(radius_m), 20000))
+
+            response = self.session.get(self.SEARCH_URL, params=params, timeout=self.timeout)
             self._raise_for_status(response)
             payload = response.json()
             for item in payload.get("documents", []):
@@ -106,6 +118,7 @@ class KakaoLocalCollector:
             "road_address": item.get("road_address_name", ""),
             "latitude": item.get("y", ""),
             "longitude": item.get("x", ""),
+            "search_region_code": region_code,
             "region_code": region_code,
             "source_url": item.get("place_url", ""),
             "search_query": query,
