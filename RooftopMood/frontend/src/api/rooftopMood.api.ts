@@ -1,6 +1,7 @@
-import { apiGet } from "./client";
+import { apiGet, apiPostForm } from "./client";
 import type {
   HomeResponse,
+  PhotoUploadResponse,
   Recommendation,
   Region,
   ViewCode,
@@ -24,5 +25,15 @@ export function fetchRecommendations(view: ViewCode, region: string) {
 export function fetchSunsetBest() {
   return apiGet<{ recommendations: Recommendation[] }>(
     "/recommendations/sunset-best",
+  );
+}
+
+export function uploadCafePhoto(cafeId: number, file: File, userKey?: string) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiPostForm<PhotoUploadResponse>(
+    `/cafes/${cafeId}/photo`,
+    formData,
+    userKey ? { "X-User-Key": userKey } : undefined,
   );
 }
