@@ -9,22 +9,33 @@ from utils import clean_html
 
 
 class NaverBlogCollector:
-    SEARCH_URL = "https://openapi.naver.com/v1/search/blog.json"
-
-    def __init__(self, client_id: str, client_secret: str, timeout: float = 10.0):
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        timeout: float = 10.0,
+        base_url: str = "https://naverapihub.apigw.ntruss.com",
+    ):
         self.timeout = timeout
+        self.search_url = f"{base_url.rstrip('/')}/search/v1/blog"
         self.session = requests.Session()
         self.session.headers.update(
             {
-                "X-Naver-Client-Id": client_id,
-                "X-Naver-Client-Secret": client_secret,
+                "X-NCP-APIGW-API-KEY-ID": client_id,
+                "X-NCP-APIGW-API-KEY": client_secret,
             }
         )
 
     def search(self, query: str, display: int = 10, sort: str = "sim") -> list[dict[str, Any]]:
         response = self.session.get(
-            self.SEARCH_URL,
-            params={"query": query, "display": min(max(display, 1), 100), "start": 1, "sort": sort},
+            self.search_url,
+            params={
+                "query": query,
+                "display": min(max(display, 1), 100),
+                "start": 1,
+                "sort": sort,
+                "format": "json",
+            },
             timeout=self.timeout,
         )
         response.raise_for_status()
