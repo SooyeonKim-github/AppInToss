@@ -1,27 +1,16 @@
 query_templates:
   ROOFTOP:
-    - "{name} 루프탑"
-    - "{name} 옥상"
-    - "{name} 테라스"
+    - "{name} {region} 루프탑"
+    - "{name} {region} 옥상 테라스"
   SUNSET:
-    - "{name} 노을"
-    - "{name} 일몰"
+    - "{name} {region} 노을 일몰"
   HAN_RIVER:
-    - "{name} 한강뷰"
-    - "{name} 한강"
+    - "{name} {region} 한강뷰"
   CITY:
-    - "{name} 시티뷰"
-    - "{name} 야경"
+    - "{name} {region} 시티뷰 야경"
   PALACE:
-    - "{name} 궁궐뷰"
-    - "{name} 경복궁뷰"
-    - "{name} 창덕궁뷰"
+    - "{name} {region} 궁궐뷰 경복궁 창덕궁"
   FOREST:
-    - "{name} 숲뷰"
-    - "{name} 서울숲뷰"
-    - "{name} 남산뷰"
-
+    - "{name} {region} 숲뷰 서울숲 남산"
   DISCOVERY:
-    - "{name} 뷰"
-    - "{name} 전망"
-    - "{name} 뷰 좋은 카페"
+    - "{name} {region} 전망 뷰"
