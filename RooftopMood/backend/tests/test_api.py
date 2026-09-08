@@ -37,18 +37,22 @@ def test_recommendation_flow():
     )
     assert response.status_code == 200
     items = response.json()["recommendations"]
-    assert len(items) <= 3
+    assert len(items) <= 5
     if items:
         item = items[0]
         assert "todaySunsetInfo" in item
         assert "bestTime" in item["todaySunsetInfo"]
         assert "노을" not in item["viewDescription"]
+        assert item["kakaoMapUrl"]
 
 
-def test_sunset_best():
+def test_sunset_best_returns_top_five_list():
     response = client.get("/api/v1/recommendations/sunset-best")
     assert response.status_code == 200
-    assert response.json()["recommendation"]["score"] >= 0
+    items = response.json()["recommendations"]
+    assert 1 <= len(items) <= 5
+    assert items[0]["score"] >= 0
+    assert all(item["kakaoMapUrl"] for item in items)
 
 
 def test_cafe_detail_separates_static_view_and_today_sunset():
