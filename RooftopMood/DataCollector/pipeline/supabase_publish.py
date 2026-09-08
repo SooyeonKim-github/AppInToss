@@ -11,7 +11,10 @@ from utils import read_csv
 
 LOGGER = logging.getLogger(__name__)
 
-PUBLISHABLE_ROOFTOP_STATUSES = {"CONFIRMED", "PROBABLE"}
+# 자동 분류는 STRONG_PROBABLE까지만 생성합니다.
+# 기본 적재는 강한 후보만 허용하고, --include-review일 때 PROBABLE도 포함합니다.
+PUBLISHABLE_ROOFTOP_STATUSES = {"CONFIRMED", "STRONG_PROBABLE"}
+REVIEWABLE_ROOFTOP_STATUSES = {"PROBABLE"}
 VIEW_COLUMNS = {
     "HAN_RIVER": "han_river_score",
     "CITY": "city_score",
@@ -65,7 +68,8 @@ class SupabasePublishPipeline:
     def _transform(self, row: dict[str, Any], include_review: bool) -> dict[str, Any] | None:
         rooftop_status = str(row.get("rooftop_status", "")).strip().upper()
         if rooftop_status not in PUBLISHABLE_ROOFTOP_STATUSES:
-            return None
+            if not (include_review and rooftop_status in REVIEWABLE_ROOFTOP_STATUSES):
+                return None
         if _truthy(row.get("description_review_required")) and not include_review:
             return None
 
@@ -103,8 +107,6 @@ class SupabasePublishPipeline:
             "latitude": latitude,
             "longitude": longitude,
             "views": views,
-            # 아직 전용 카페 품질 점수가 없으므로 중립값을 사용하고,
-            # 실제 수집 지표가 추가되면 이 값을 교체한다.
             "sunset_view_score": main_view_score,
             "open_view_score": 3,
             "cafe_quality_score": 3,
@@ -145,10 +147,11 @@ class SupabasePublishPipeline:
             "published": 0,
         }
         LOGGER.info(
-            "Supabase publish preview | source=%d publishable=%d dry_run=%s",
+            "Supabase publish preview | source=%d publishable=%d dry_run=%s include_review=%s",
             result["source"],
             result["publishable"],
             dry_run,
+            include_review,
         )
 
         if dry_run or not transformed:
