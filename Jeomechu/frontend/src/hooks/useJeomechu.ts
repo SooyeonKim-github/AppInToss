@@ -11,6 +11,7 @@ export function useJeomechu() {
   const [pick, setPick] = useState<MenuPickResponse | null>(null);
   const [ranking, setRanking] = useState<RankingItem[]>([]);
   const [revealed, setRevealed] = useState(false);
+  const [hasRevealedOnce, setHasRevealedOnce] = useState(false);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +24,10 @@ export function useJeomechu() {
   }, []);
 
   const revealAfterDelay = useCallback(() => {
-    window.setTimeout(() => setRevealed(true), REVEAL_DELAY_MS);
+    window.setTimeout(() => {
+      setRevealed(true);
+      setHasRevealedOnce(true);
+    }, REVEAL_DELAY_MS);
   }, []);
 
   useEffect(() => {
@@ -77,6 +81,7 @@ export function useJeomechu() {
     pick,
     ranking,
     revealed,
+    hasRevealedOnce,
     busy,
     error,
     toggleLike,

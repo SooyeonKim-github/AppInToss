@@ -5,7 +5,7 @@ import { PopularRanking } from "./components/PopularRanking";
 import { useJeomechu } from "./hooks/useJeomechu";
 
 export default function App() {
-  const { pick, ranking, revealed, busy, error, toggleLike, reroll } = useJeomechu();
+  const { pick, ranking, revealed, hasRevealedOnce, busy, error, toggleLike, reroll } = useJeomechu();
 
   return (
     <main className="app-shell">
@@ -20,13 +20,12 @@ export default function App() {
 
       {error && <p className="error-banner">{error}</p>}
 
-      {pick && revealed && (
+      {pick && hasRevealedOnce && (
         <div className="actions">
-          <LikeButton liked={pick.liked} likes={pick.likes} disabled={busy} onClick={toggleLike} />
+          <LikeButton liked={pick.liked} disabled={busy} onClick={toggleLike} />
           <button className="reroll-button" disabled={busy} onClick={reroll}>
-            <span>🎲</span>
-            <span>다른 거 먹고 싶어요</span>
-            <small>광고 보고 다시 뽑기</small>
+            <span className="action-main"><span className="action-icon">🎲</span><span>다시뽑기</span></span>
+            <small className="action-sub">한 번 더 골라요</small>
           </button>
         </div>
       )}

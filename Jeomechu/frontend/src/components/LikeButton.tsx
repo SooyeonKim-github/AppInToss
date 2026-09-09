@@ -1,20 +1,17 @@
 interface Props {
   liked: boolean;
-  likes: number;
   disabled?: boolean;
   onClick: () => void;
 }
 
-function compact(value: number) {
-  return new Intl.NumberFormat("ko-KR", { notation: "compact", maximumFractionDigits: 1 }).format(value);
-}
-
-export function LikeButton({ liked, likes, disabled, onClick }: Props) {
+export function LikeButton({ liked, disabled, onClick }: Props) {
   return (
     <button className={`like-button ${liked ? "liked" : ""}`} disabled={disabled} onClick={onClick}>
-      <span className="heart">{liked ? "❤️" : "♡"}</span>
-      <span>{liked ? "오늘 이거 좋다!" : "오늘 이거 좋다"}</span>
-      <b>{compact(likes)}</b>
+      <span className="action-main">
+        <span className="action-icon heart">{liked ? "❤️" : "♡"}</span>
+        <span>좋아요</span>
+      </span>
+      <small className="action-sub">오늘은 이거다</small>
     </button>
   );
 }
