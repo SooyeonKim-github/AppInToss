@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 import pandas as pd
 from analyzers.subway_window_analyzer import _window_side
+from generators.candidate_generator import CandidateGenerator
 from geo_utils import angular_distance_deg, bearing_deg, haversine_m
 from ranking.candidate_ranker import CandidateRanker
 
@@ -17,6 +18,21 @@ class GeoUtilsTest(unittest.TestCase):
     def test_window_side(self):
         self.assertEqual(_window_side(0, 90), "오른쪽 창문")
         self.assertEqual(_window_side(0, 270), "왼쪽 창문")
+
+
+class CandidateGeneratorTest(unittest.TestCase):
+    def test_west_edge_sampling_keeps_western_quarter(self):
+        sampled = [
+            (37.50, 126.90),
+            (37.51, 126.91),
+            (37.52, 126.92),
+            (37.53, 126.93),
+            (37.54, 126.94),
+        ]
+        west, role = CandidateGenerator._apply_sampling_mode(sampled, "POLYGON_BOUNDARY", "west_edge")
+        self.assertEqual(role, "WEST_EDGE")
+        self.assertGreaterEqual(len(west), 1)
+        self.assertTrue(all(lon <= 126.91 for _, lon in west))
 
 
 class RankerTest(unittest.TestCase):
@@ -74,11 +90,24 @@ class RankerTest(unittest.TestCase):
             "BIKE_PATH": "자전거길노을",
         }
         frame = pd.DataFrame([
-            {
-                "candidate_id": source_type,
-                "source_type": source_type,
-                "station_distance_m": 100,
-            }
+            {"candidate_id": source_type, "source_type": source_type, "station_distance_m": 100}
+            for source_type in expected
+        ])
+        ranked = CandidateRanker(self.config).rank(frame).set_index("source_type")
+        for source_type, sunset_type in expected.items():
+            self.assertEqual(ranked.loc[source_type, "sunset_type"], sunset_type)
+
+    def test_second_wave_source_types(self):
+        expected = {
+            "PARK_EDGE": "공원끝노을",
+            "RIVER_ACCESS": "나들목노을",
+            "PEDESTRIAN_PATH": "보행로노을",
+            "FORTRESS_TRAIL": "성곽길노을",
+            "RIDGE_TRAIL": "능선노을",
+            "SPORTS_GROUND": "운동장노을",
+        }
+        frame = pd.DataFrame([
+            {"candidate_id": source_type, "source_type": source_type, "station_distance_m": 100}
             for source_type in expected
         ])
         ranked = CandidateRanker(self.config).rank(frame).set_index("source_type")
