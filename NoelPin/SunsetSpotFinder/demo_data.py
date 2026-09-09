@@ -5,12 +5,22 @@ import pandas as pd
 
 def demo_points() -> pd.DataFrame:
     rows = [
-        {"source_type": "PEDESTRIAN_BRIDGE", "source_name": "한강초교 앞 보행육교 후보", "latitude": 37.5209, "longitude": 126.9952},
-        {"source_type": "BRIDGE", "source_name": "잠수교 보행구간 후보", "latitude": 37.5186, "longitude": 126.9959},
-        {"source_type": "PARK", "source_name": "노들섬 서측 후보", "latitude": 37.5172, "longitude": 126.9584},
-        {"source_type": "RIVER", "source_name": "망원 한강변 후보", "latitude": 37.5555, "longitude": 126.8992},
-        {"source_type": "TRAIL", "source_name": "응봉산 산책로 후보", "latitude": 37.5485, "longitude": 127.0304},
-        {"source_type": "URBAN_STREET", "source_name": "여의도 건물사이 후보", "latitude": 37.5225, "longitude": 126.9241},
+        {"source_type": "PEDESTRIAN_BRIDGE", "sunset_type": "육교위노을", "source_name": "한강초교 앞 보행육교 후보", "latitude": 37.5209, "longitude": 126.9952},
+        {"source_type": "BRIDGE", "sunset_type": "다리위노을", "source_name": "잠수교 보행구간 후보", "latitude": 37.5186, "longitude": 126.9959},
+        {"source_type": "PARK", "sunset_type": "산책노을", "source_name": "노들섬 서측 후보", "latitude": 37.5172, "longitude": 126.9584},
+        {"source_type": "RIVER", "sunset_type": "한강노을", "source_name": "망원 한강변 후보", "latitude": 37.5555, "longitude": 126.8992},
+        {"source_type": "TRAIL", "sunset_type": "산책노을", "source_name": "응봉산 산책로 후보", "latitude": 37.5485, "longitude": 127.0304},
+        {"source_type": "URBAN_STREET", "sunset_type": "건물사이노을", "source_name": "여의도 건물사이 후보", "latitude": 37.5225, "longitude": 126.9241},
+
+        # V1 first-wave source expansion. These are demo-only coordinates used to
+        # exercise the pipeline until normalized Seoul datasets are connected.
+        {"source_type": "STAIR", "sunset_type": "계단위노을", "source_name": "언덕 보행계단 후보 (demo)", "latitude": 37.5448, "longitude": 126.9660},
+        {"source_type": "HILL_ROAD", "sunset_type": "언덕길노을", "source_name": "서향 언덕길 후보 (demo)", "latitude": 37.5431, "longitude": 126.9602},
+        {"source_type": "VIEW_DECK", "sunset_type": "전망데크노을", "source_name": "공원 전망데크 후보 (demo)", "latitude": 37.5514, "longitude": 127.0178},
+        {"source_type": "LEVEE", "sunset_type": "제방위노을", "source_name": "하천 제방 후보 (demo)", "latitude": 37.5630, "longitude": 126.8870},
+        {"source_type": "RIVER_STAIRS", "sunset_type": "수변계단노을", "source_name": "한강 수변계단 후보 (demo)", "latitude": 37.5288, "longitude": 126.9340},
+        {"source_type": "PLAZA", "sunset_type": "광장노을", "source_name": "역앞 광장 후보 (demo)", "latitude": 37.5660, "longitude": 126.9770},
+        {"source_type": "BIKE_PATH", "sunset_type": "자전거길노을", "source_name": "한강 자전거길 후보 (demo)", "latitude": 37.5462, "longitude": 126.9120},
     ]
     return pd.DataFrame(rows)
 
