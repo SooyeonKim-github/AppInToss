@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+
 import pandas as pd
 
 
@@ -24,6 +25,10 @@ SUNSET_TYPE_BY_SOURCE = {
     "FORTRESS_TRAIL": "성곽길노을",
     "RIDGE_TRAIL": "능선노을",
     "SPORTS_GROUND": "운동장노을",
+    "ROAD_AXIS": "대로끝노을",
+    "ALLEY_AXIS": "골목끝노을",
+    "RAIL_EDGE": "철길너머노을",
+    "APARTMENT_GAP": "아파트사이노을",
 }
 
 
@@ -40,28 +45,20 @@ class CandidateRanker:
             "elevation": "elevation_score",
             "station": "station_score",
             "uniqueness": "uniqueness_score",
+            "frame": "frame_score",
         }
         total = sum(float(self.weights.get(key, 0)) for key in metric_map) or 1.0
         score = pd.Series(0.0, index=frame.index)
         for key, column in metric_map.items():
             values = frame[column] if column in frame.columns else pd.Series(0.0, index=frame.index)
             score += (
-                pd.to_numeric(values, errors="coerce")
-                .fillna(0.0)
-                .clip(0, 1)
+                pd.to_numeric(values, errors="coerce").fillna(0.0).clip(0, 1)
                 * (float(self.weights.get(key, 0)) / total)
             )
 
         frame["candidate_priority"] = (score * 100).round(2)
         frame["rank"] = frame["candidate_priority"].rank(method="first", ascending=False).astype(int)
-
-        # V1에서 지정한 장소형 sunset_type을 최우선으로 보존한다.
-        # BUILDING_GAP 같은 값은 내부 분석 힌트일 뿐 장소형 분류를 덮어쓰지 않는다.
-        source_types = (
-            frame["source_type"].astype(str)
-            if "source_type" in frame.columns
-            else pd.Series("", index=frame.index)
-        )
+        source_types = frame["source_type"].astype(str) if "source_type" in frame.columns else pd.Series("", index=frame.index)
         fallback_types = source_types.map(SUNSET_TYPE_BY_SOURCE).fillna("숨은노을")
         if "sunset_type" in frame.columns:
             existing = frame["sunset_type"].fillna("").astype(str).str.strip()
@@ -69,12 +66,8 @@ class CandidateRanker:
         else:
             frame["sunset_type"] = fallback_types
         frame["category_hint"] = frame["sunset_type"]
-
         frame["sunset_tags"] = frame.apply(self._build_tags, axis=1)
-        return frame.sort_values(
-            ["candidate_priority", "station_distance_m"],
-            ascending=[False, True],
-        ).reset_index(drop=True)
+        return frame.sort_values(["candidate_priority", "station_distance_m"], ascending=[False, True]).reset_index(drop=True)
 
     @staticmethod
     def _build_tags(row: pd.Series) -> str:
