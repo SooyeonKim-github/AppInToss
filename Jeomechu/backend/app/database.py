@@ -1,17 +1,37 @@
 from __future__ import annotations
 
-import os
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
+from .settings import settings
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./jeomechu.db")
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
+DATABASE_URL = settings.database_url
+
+engine_kwargs: dict = {
+    "pool_pre_ping": True,
+}
+
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    engine_kwargs.update(
+        {
+            "pool_size": settings.db_pool_size,
+            "max_overflow": settings.db_max_overflow,
+            "pool_recycle": settings.db_pool_recycle_seconds,
+        }
+    )
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False,
+    expire_on_commit=False,
+)
 
 
 class Base(DeclarativeBase):
@@ -19,7 +39,7 @@ class Base(DeclarativeBase):
 
 
 def ensure_menu_image_column() -> None:
-    """Tiny dev migration for databases created before image_key existed."""
+    """Compatibility migration for databases created before image_key existed."""
     inspector = inspect(engine)
     if "menus" not in inspector.get_table_names():
         return
