@@ -99,8 +99,13 @@ button:disabled { opacity: .58; }
 .like-button { background: rgba(255,255,255,.96); color: #292520; box-shadow: 0 6px 18px rgba(79,61,43,.08); }
 .like-button .action-sub { color: #9a9189; }
 .like-button.liked { background: #fff0f0; }
-.reroll-button { background: #24211e; color: white; box-shadow: 0 7px 18px rgba(42,34,28,.16); }
-.reroll-button .action-sub { color: #bdb7b0; }
+.reroll-button {
+  background: linear-gradient(145deg, #f8eee6, #f1dfd1);
+  color: #3d3028;
+  border: 1px solid rgba(218,190,166,.68);
+  box-shadow: 0 6px 16px rgba(105,79,58,.10);
+}
+.reroll-button .action-sub { color: #947f70; }
 
 .ranking-card { margin-top: 25px; padding: 18px 18px 12px; border-radius: 22px; background: rgba(255,255,255,.78); border: 1px solid rgba(255,255,255,.92); overflow: hidden; }
 .section-title { display: flex; align-items: center; justify-content: space-between; font-weight: 800; font-size: 15px; }
