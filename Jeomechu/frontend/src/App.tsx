@@ -35,10 +35,15 @@ export default function App() {
 
       <section className="hero">
         {!started ? (
-          <div className="start-pick">
-            <div className="start-pick-icon" aria-hidden="true">🍽️</div>
-            <h2>오늘 저녁 뭐 먹지?</h2>
-          </div>
+          <button
+            className="start-pick"
+            disabled={!pick || busy}
+            onClick={startPick}
+            aria-label="오늘 저녁메뉴 뽑기"
+          >
+            <span className="start-pick-icon" aria-hidden="true">🍽️</span>
+            <span className="start-pick-title">오늘 저녁메뉴 뽑기</span>
+          </button>
         ) : !revealed || !pick ? (
           <DrumRoll />
         ) : (
