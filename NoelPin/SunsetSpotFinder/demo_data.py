@@ -11,8 +11,6 @@ def demo_points() -> pd.DataFrame:
         {"source_type": "RIVER", "sunset_type": "한강노을", "source_name": "망원 한강변 후보", "latitude": 37.5555, "longitude": 126.8992},
         {"source_type": "TRAIL", "sunset_type": "산책노을", "source_name": "응봉산 산책로 후보", "latitude": 37.5485, "longitude": 127.0304},
         {"source_type": "URBAN_STREET", "sunset_type": "건물사이노을", "source_name": "여의도 건물사이 후보", "latitude": 37.5225, "longitude": 126.9241},
-
-        # V1 first-wave expansion demo candidates.
         {"source_type": "STAIR", "sunset_type": "계단위노을", "source_name": "언덕 보행계단 후보 (demo)", "latitude": 37.5448, "longitude": 126.9660},
         {"source_type": "HILL_ROAD", "sunset_type": "언덕길노을", "source_name": "서향 언덕길 후보 (demo)", "latitude": 37.5431, "longitude": 126.9602},
         {"source_type": "VIEW_DECK", "sunset_type": "전망데크노을", "source_name": "공원 전망데크 후보 (demo)", "latitude": 37.5514, "longitude": 127.0178},
@@ -20,8 +18,6 @@ def demo_points() -> pd.DataFrame:
         {"source_type": "RIVER_STAIRS", "sunset_type": "수변계단노을", "source_name": "한강 수변계단 후보 (demo)", "latitude": 37.5288, "longitude": 126.9340},
         {"source_type": "PLAZA", "sunset_type": "광장노을", "source_name": "역앞 광장 후보 (demo)", "latitude": 37.5660, "longitude": 126.9770},
         {"source_type": "BIKE_PATH", "sunset_type": "자전거길노을", "source_name": "한강 자전거길 후보 (demo)", "latitude": 37.5462, "longitude": 126.9120},
-
-        # V1 second-wave expansion demo candidates.
         {"source_type": "PARK_EDGE", "sunset_type": "공원끝노을", "source_name": "공원 서쪽 끝 후보 (demo)", "latitude": 37.5517, "longitude": 126.9587},
         {"source_type": "RIVER_ACCESS", "sunset_type": "나들목노을", "source_name": "한강 나들목 출구 후보 (demo)", "latitude": 37.5304, "longitude": 126.9290},
         {"source_type": "PEDESTRIAN_PATH", "sunset_type": "보행로노을", "source_name": "서향 보행로 후보 (demo)", "latitude": 37.5700, "longitude": 126.9680},
@@ -30,6 +26,35 @@ def demo_points() -> pd.DataFrame:
         {"source_type": "SPORTS_GROUND", "sunset_type": "운동장노을", "source_name": "공공 운동장 서측 후보 (demo)", "latitude": 37.5580, "longitude": 126.9360},
     ]
     return pd.DataFrame(rows)
+
+
+def _polygon(cx: float, cy: float, dx: float, dy: float, **props):
+    return {"type": "Feature", "properties": props, "geometry": {"type": "Polygon", "coordinates": [[[cx-dx, cy-dy], [cx+dx, cy-dy], [cx+dx, cy+dy], [cx-dx, cy+dy], [cx-dx, cy-dy]]]}}
+
+
+def demo_automatic_layers() -> dict[str, dict]:
+    roads = {"type": "FeatureCollection", "features": [
+        {"type": "Feature", "properties": {"name": "퇴근대로 demo", "width_m": 20}, "geometry": {"type": "LineString", "coordinates": [[126.9820, 37.5650], [126.9760, 37.5650]]}},
+        {"type": "Feature", "properties": {"name": "노을골목 demo", "width_m": 5}, "geometry": {"type": "LineString", "coordinates": [[126.9790, 37.5610], [126.9778, 37.5610]]}},
+    ]}
+    buildings = {"type": "FeatureCollection", "features": [
+        _polygon(126.97865, 37.56135, .00018, .00012, name="골목 북측 1"),
+        _polygon(126.97825, 37.56132, .00018, .00012, name="골목 북측 2"),
+        _polygon(126.97865, 37.56065, .00018, .00012, name="골목 남측 1"),
+        _polygon(126.97825, 37.56068, .00018, .00012, name="골목 남측 2"),
+        _polygon(126.9730, 37.5633, .00022, .00018, name="노을아파트 A동", is_apartment=True),
+        _polygon(126.9730, 37.5627, .00022, .00018, name="노을아파트 B동", is_apartment=True),
+    ]}
+    railways = {"type": "FeatureCollection", "features": [
+        {"type": "Feature", "properties": {"name": "경의선 demo"}, "geometry": {"type": "LineString", "coordinates": [[126.9700, 37.5580], [126.9700, 37.5620]]}},
+    ]}
+    pedestrian = {"type": "FeatureCollection", "features": [
+        {"type": "Feature", "properties": {"name": "대로 북측 보도"}, "geometry": {"type": "LineString", "coordinates": [[126.9820, 37.56505], [126.9760, 37.56505]]}},
+        {"type": "Feature", "properties": {"name": "골목 보행로"}, "geometry": {"type": "LineString", "coordinates": [[126.9790, 37.5610], [126.9778, 37.5610]]}},
+        {"type": "Feature", "properties": {"name": "철길 옆 공공보행로"}, "geometry": {"type": "LineString", "coordinates": [[126.9710, 37.5580], [126.9710, 37.5620]]}},
+        {"type": "Feature", "properties": {"name": "아파트 사이 공공보행로"}, "geometry": {"type": "LineString", "coordinates": [[126.9725, 37.5630], [126.9735, 37.5630]]}},
+    ]}
+    return {"roads_geojson": roads, "buildings_geojson": buildings, "railways_geojson": railways, "pedestrian_network_geojson": pedestrian}
 
 
 def demo_stations() -> pd.DataFrame:
