@@ -12,8 +12,7 @@ def demo_points() -> pd.DataFrame:
         {"source_type": "TRAIL", "sunset_type": "산책노을", "source_name": "응봉산 산책로 후보", "latitude": 37.5485, "longitude": 127.0304},
         {"source_type": "URBAN_STREET", "sunset_type": "건물사이노을", "source_name": "여의도 건물사이 후보", "latitude": 37.5225, "longitude": 126.9241},
 
-        # V1 first-wave source expansion. These are demo-only coordinates used to
-        # exercise the pipeline until normalized Seoul datasets are connected.
+        # V1 first-wave expansion demo candidates.
         {"source_type": "STAIR", "sunset_type": "계단위노을", "source_name": "언덕 보행계단 후보 (demo)", "latitude": 37.5448, "longitude": 126.9660},
         {"source_type": "HILL_ROAD", "sunset_type": "언덕길노을", "source_name": "서향 언덕길 후보 (demo)", "latitude": 37.5431, "longitude": 126.9602},
         {"source_type": "VIEW_DECK", "sunset_type": "전망데크노을", "source_name": "공원 전망데크 후보 (demo)", "latitude": 37.5514, "longitude": 127.0178},
@@ -21,6 +20,14 @@ def demo_points() -> pd.DataFrame:
         {"source_type": "RIVER_STAIRS", "sunset_type": "수변계단노을", "source_name": "한강 수변계단 후보 (demo)", "latitude": 37.5288, "longitude": 126.9340},
         {"source_type": "PLAZA", "sunset_type": "광장노을", "source_name": "역앞 광장 후보 (demo)", "latitude": 37.5660, "longitude": 126.9770},
         {"source_type": "BIKE_PATH", "sunset_type": "자전거길노을", "source_name": "한강 자전거길 후보 (demo)", "latitude": 37.5462, "longitude": 126.9120},
+
+        # V1 second-wave expansion demo candidates.
+        {"source_type": "PARK_EDGE", "sunset_type": "공원끝노을", "source_name": "공원 서쪽 끝 후보 (demo)", "latitude": 37.5517, "longitude": 126.9587},
+        {"source_type": "RIVER_ACCESS", "sunset_type": "나들목노을", "source_name": "한강 나들목 출구 후보 (demo)", "latitude": 37.5304, "longitude": 126.9290},
+        {"source_type": "PEDESTRIAN_PATH", "sunset_type": "보행로노을", "source_name": "서향 보행로 후보 (demo)", "latitude": 37.5700, "longitude": 126.9680},
+        {"source_type": "FORTRESS_TRAIL", "sunset_type": "성곽길노을", "source_name": "성곽 산책길 후보 (demo)", "latitude": 37.5960, "longitude": 126.9810},
+        {"source_type": "RIDGE_TRAIL", "sunset_type": "능선노을", "source_name": "서향 능선길 후보 (demo)", "latitude": 37.5750, "longitude": 127.0060},
+        {"source_type": "SPORTS_GROUND", "sunset_type": "운동장노을", "source_name": "공공 운동장 서측 후보 (demo)", "latitude": 37.5580, "longitude": 126.9360},
     ]
     return pd.DataFrame(rows)
 
