@@ -11,6 +11,7 @@ class Candidate:
     source_name: str
     latitude: float
     longitude: float
+    sunset_type: str = ""
     source_id: str = ""
     geometry_role: str = "POINT"
     segment_index: int | None = None
