@@ -25,6 +25,31 @@ button:disabled { opacity: .58; }
 .brand-header p { margin: 7px 0 0; color: #8f877f; font-size: 15px; font-weight: 600; }
 
 .hero { min-height: 420px; display: flex; align-items: center; }
+.start-pick { width: 100%; text-align: center; padding: 30px 8px 20px; animation: reveal .4s ease both; }
+.start-pick-icon { font-size: 68px; line-height: 1; margin-bottom: 18px; filter: drop-shadow(0 8px 14px rgba(90,63,38,.10)); }
+.start-pick h2 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+.start-pick p { margin: 10px 0 24px; color: #8f877f; font-size: 15px; font-weight: 650; }
+.start-pick-button {
+  width: min(100%, 330px);
+  min-height: 72px;
+  border: 0;
+  border-radius: 23px;
+  background: #24211e;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 20px;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(42,34,28,.18);
+  transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+}
+.start-pick-button:active { transform: scale(.98); box-shadow: 0 5px 14px rgba(42,34,28,.14); }
+.start-pick-button-icon { font-size: 30px; line-height: 1; }
+.start-pick-button strong { font-size: 18px; font-weight: 850; letter-spacing: -.4px; }
+.start-pick small { display: block; margin-top: 11px; color: #b0a79f; font-size: 11px; }
+
 .drum-roll { width: 100%; text-align: center; padding: 48px 20px; }
 .drum-roll .eyebrow { margin: 0 0 30px; font-size: 25px; font-weight: 850; letter-spacing: -.9px; }
 .drum { font-size: 70px; animation: drumShake .55s ease-in-out infinite alternate; transform-origin: center; }
@@ -52,30 +77,10 @@ button:disabled { opacity: .58; }
 .menu-card.rarity-rare::before { background: linear-gradient(90deg, #ff9e80, #ffc65b, #b6d78b); }
 .rarity-copy { margin: 0; font-size: 15px; font-weight: 800; color: #786c63; }
 
-.menu-illustration {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  background-repeat: no-repeat;
-  background-size: 600% 500%;
-  background-color: #fff4e7;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.92), 0 7px 22px rgba(92, 68, 45, .10);
-}
-.illustration-hero {
-  width: 176px;
-  height: 176px;
-  margin: 20px auto 16px;
-  border-radius: 45px;
-}
-.illustration-rank {
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.9);
-}
-.illustration-fallback {
-  background-image: linear-gradient(145deg, #fff8ef, #fff0df);
-}
+.menu-illustration { display: grid; place-items: center; flex: 0 0 auto; background-repeat: no-repeat; background-size: 600% 500%; background-color: #fff4e7; box-shadow: inset 0 0 0 1px rgba(255,255,255,.92), 0 7px 22px rgba(92, 68, 45, .10); }
+.illustration-hero { width: 176px; height: 176px; margin: 20px auto 16px; border-radius: 45px; }
+.illustration-rank { width: 34px; height: 34px; border-radius: 11px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.9); }
+.illustration-fallback { background-image: linear-gradient(145deg, #fff8ef, #fff0df); }
 .illustration-hero.illustration-fallback { font-size: 82px; }
 .illustration-rank.illustration-fallback { font-size: 18px; }
 
@@ -84,111 +89,28 @@ button:disabled { opacity: .58; }
 .tagline { margin: 18px 0 0; color: #675f58; font-size: 16px; }
 .rare-chip { display: inline-block; margin-top: 17px; padding: 7px 11px; border-radius: 999px; background: #fff4cc; color: #8f6d10; font-size: 11px; font-weight: 850; letter-spacing: .3px; }
 
-.actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 14px;
-}
-.like-button,
-.reroll-button {
-  width: 100%;
-  min-height: 78px;
-  border: 0;
-  border-radius: 20px;
-  padding: 12px 10px 11px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  transition: transform .14s ease, background .14s ease, box-shadow .14s ease;
-}
-.like-button:active,
-.reroll-button:active { transform: scale(.975); }
-.action-main {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 17px;
-  font-weight: 850;
-  letter-spacing: -.4px;
-  line-height: 1.1;
-}
-.action-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 30px;
-  font-size: 29px;
-  line-height: 1;
-}
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.like-button, .reroll-button { width: 100%; min-height: 78px; border: 0; border-radius: 20px; padding: 12px 10px 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: transform .14s ease, background .14s ease, box-shadow .14s ease; }
+.like-button:active, .reroll-button:active { transform: scale(.975); }
+.action-main { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 17px; font-weight: 850; letter-spacing: -.4px; line-height: 1.1; }
+.action-icon { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; font-size: 29px; line-height: 1; }
 .action-icon.heart { font-size: 33px; }
-.action-sub {
-  display: block;
-  font-size: 11px;
-  line-height: 1.2;
-  font-weight: 650;
-}
-.like-button {
-  background: rgba(255,255,255,.96);
-  color: #292520;
-  box-shadow: 0 6px 18px rgba(79,61,43,.08);
-}
+.action-sub { display: block; font-size: 11px; line-height: 1.2; font-weight: 650; }
+.like-button { background: rgba(255,255,255,.96); color: #292520; box-shadow: 0 6px 18px rgba(79,61,43,.08); }
 .like-button .action-sub { color: #9a9189; }
 .like-button.liked { background: #fff0f0; }
-.reroll-button {
-  background: #24211e;
-  color: white;
-  box-shadow: 0 7px 18px rgba(42,34,28,.16);
-}
+.reroll-button { background: #24211e; color: white; box-shadow: 0 7px 18px rgba(42,34,28,.16); }
 .reroll-button .action-sub { color: #bdb7b0; }
 
-.ranking-card {
-  margin-top: 25px;
-  padding: 18px 18px 12px;
-  border-radius: 22px;
-  background: rgba(255,255,255,.78);
-  border: 1px solid rgba(255,255,255,.92);
-  overflow: hidden;
-}
+.ranking-card { margin-top: 25px; padding: 18px 18px 12px; border-radius: 22px; background: rgba(255,255,255,.78); border: 1px solid rgba(255,255,255,.92); overflow: hidden; }
 .section-title { display: flex; align-items: center; justify-content: space-between; font-weight: 800; font-size: 15px; }
 .section-title small { font-size: 10px; color: #aaa199; font-weight: 600; }
 .ranking-scroll-shell { position: relative; margin-top: 10px; }
-.ranking-scroll-list {
-  list-style: none;
-  margin: 0;
-  padding: 0 2px 4px 0;
-  max-height: 188px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
+.ranking-scroll-list { list-style: none; margin: 0; padding: 0 2px 4px 0; max-height: 188px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
 .ranking-scroll-list::-webkit-scrollbar { display: none; }
-.ranking-scroll-list li {
-  display: grid;
-  grid-template-columns: 22px 42px 1fr auto;
-  align-items: center;
-  min-height: 47px;
-  border-top: 1px solid #f2ece6;
-  font-size: 14px;
-}
+.ranking-scroll-list li { display: grid; grid-template-columns: 22px 42px 1fr auto; align-items: center; min-height: 47px; border-top: 1px solid #f2ece6; font-size: 14px; }
 .ranking-scroll-list li:first-child { border-top: 0; }
-.ranking-fade {
-  position: absolute;
-  z-index: 2;
-  pointer-events: none;
-  left: -2px;
-  right: -2px;
-  bottom: 0;
-  height: 86px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,250,246,.28) 38%, rgba(255,248,242,.78) 74%, rgba(255,247,239,.98) 100%);
-  animation: rankingFadeIn .35s ease both;
-}
+.ranking-fade { position: absolute; z-index: 2; pointer-events: none; left: -2px; right: -2px; bottom: 0; height: 86px; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,250,246,.28) 38%, rgba(255,248,242,.78) 74%, rgba(255,247,239,.98) 100%); animation: rankingFadeIn .35s ease both; }
 .rank { color: #b5aca4; font-weight: 850; }
 .rank-like { color: #a89f97; font-size: 11px; }
 .error-banner { padding: 11px 13px; border-radius: 12px; background: #fff0ed; color: #b94e36; font-size: 12px; }
@@ -202,6 +124,8 @@ footer { padding: 22px 0 2px; text-align: center; color: #b1a89f; font-size: 11p
 @media (max-width: 360px) {
   .app-shell { padding-left: 14px; padding-right: 14px; }
   .brand-mark { font-size: 25px; }
+  .start-pick h2 { font-size: 25px; }
+  .start-pick-button { min-height: 68px; }
   .menu-card h1 { font-size: 33px; }
   .illustration-hero { width: 160px; height: 160px; border-radius: 40px; }
   .like-button, .reroll-button { min-height: 74px; }

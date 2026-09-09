@@ -2,10 +2,22 @@ import { DrumRoll } from "./components/DrumRoll";
 import { LikeButton } from "./components/LikeButton";
 import { MenuRevealCard } from "./components/MenuRevealCard";
 import { PopularRanking } from "./components/PopularRanking";
+import { StartPickButton } from "./components/StartPickButton";
 import { useJeomechu } from "./hooks/useJeomechu";
 
 export default function App() {
-  const { pick, ranking, revealed, hasRevealedOnce, busy, error, toggleLike, reroll } = useJeomechu();
+  const {
+    pick,
+    ranking,
+    started,
+    revealed,
+    hasRevealedOnce,
+    busy,
+    error,
+    startPick,
+    toggleLike,
+    reroll,
+  } = useJeomechu();
 
   return (
     <main className="app-shell">
@@ -15,7 +27,13 @@ export default function App() {
       </header>
 
       <section className="hero">
-        {!revealed || !pick ? <DrumRoll /> : <MenuRevealCard menu={pick.menu} />}
+        {!started ? (
+          <StartPickButton disabled={busy || !pick} onClick={startPick} />
+        ) : !revealed || !pick ? (
+          <DrumRoll />
+        ) : (
+          <MenuRevealCard menu={pick.menu} />
+        )}
       </section>
 
       {error && <p className="error-banner">{error}</p>}
