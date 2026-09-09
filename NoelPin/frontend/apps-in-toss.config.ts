@@ -6,6 +6,11 @@ export default defineConfig({
     primaryColor: "#FF7657",
   },
   webView: {},
-  permissions: [],
+  permissions: [
+    {
+      name: "geolocation",
+      access: "access",
+    },
+  ],
   webBundleDir: "dist",
 });
