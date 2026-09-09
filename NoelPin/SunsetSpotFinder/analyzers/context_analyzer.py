@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from typing import Any
+
 import pandas as pd
+
 from geo_utils import angular_distance_deg, linear_score, nearest_point
 
 
@@ -11,7 +13,9 @@ def _geojson_vertices(payload: dict[str, Any] | None) -> list[tuple[float, float
     vertices = []
 
     def walk(value: Any, label: str) -> None:
-        if isinstance(value, list) and len(value) >= 2 and all(isinstance(item, (int, float)) for item in value[:2]):
+        if isinstance(value, list) and len(value) >= 2 and all(
+            isinstance(item, (int, float)) for item in value[:2]
+        ):
             lon, lat = float(value[0]), float(value[1])
             vertices.append((lat, lon, label))
             return
@@ -52,81 +56,42 @@ class ContextAnalyzer:
         ]
         water_rows = _geojson_vertices(water_geojson)
 
-        out = {
-            key: []
-            for key in [
-                "nearest_station",
-                "station_distance_m",
-                "station_score",
-                "nearest_office_hub",
-                "office_distance_m",
-                "commute_score",
-                "water_distance_m",
-                "water_bearing_deg",
-                "water_sunset_alignment_deg",
-                "view_score",
-                "uniqueness_score",
-                "category_hint",
-            ]
-        }
+        out = {key: [] for key in [
+            "nearest_station", "station_distance_m", "station_score",
+            "nearest_office_hub", "office_distance_m", "commute_score",
+            "water_distance_m", "water_bearing_deg", "water_sunset_alignment_deg",
+            "view_score", "uniqueness_score", "category_hint",
+        ]}
 
-        # Internal priors only. NoelPin never exposes these values as a public sunset score.
         uniqueness_by_source = {
-            "PEDESTRIAN_BRIDGE": .95,
-            "BRIDGE": .90,
-            "URBAN_STREET": .92,
-            "RIVER": .75,
-            "TRAIL": .72,
-            "PARK": .55,
-            "STAIR": .88,
-            "HILL_ROAD": .86,
-            "VIEW_DECK": .80,
-            "LEVEE": .82,
-            "RIVER_STAIRS": .84,
-            "PLAZA": .65,
-            "BIKE_PATH": .70,
-            "PARK_EDGE": .74,
-            "RIVER_ACCESS": .86,
-            "PEDESTRIAN_PATH": .62,
-            "FORTRESS_TRAIL": .88,
-            "RIDGE_TRAIL": .92,
-            "SPORTS_GROUND": .68,
+            "PEDESTRIAN_BRIDGE": .95, "BRIDGE": .90, "URBAN_STREET": .92,
+            "RIVER": .75, "TRAIL": .72, "PARK": .55,
+            "STAIR": .88, "HILL_ROAD": .86, "VIEW_DECK": .80,
+            "LEVEE": .82, "RIVER_STAIRS": .84, "PLAZA": .65, "BIKE_PATH": .70,
+            "PARK_EDGE": .78, "RIVER_ACCESS": .83, "PEDESTRIAN_PATH": .68,
+            "FORTRESS_TRAIL": .87, "RIDGE_TRAIL": .90, "SPORTS_GROUND": .62,
+            "ROAD_AXIS": .82, "ALLEY_AXIS": .97, "RAIL_EDGE": .91, "APARTMENT_GAP": .90,
         }
         base_view_by_source = {
-            "BRIDGE": .85,
-            "RIVER": .82,
-            "PEDESTRIAN_BRIDGE": .72,
-            "TRAIL": .68,
-            "PARK": .58,
-            "URBAN_STREET": .62,
-            "STAIR": .68,
-            "HILL_ROAD": .70,
-            "VIEW_DECK": .86,
-            "LEVEE": .78,
-            "RIVER_STAIRS": .84,
-            "PLAZA": .60,
-            "BIKE_PATH": .68,
-            "PARK_EDGE": .72,
-            "RIVER_ACCESS": .80,
-            "PEDESTRIAN_PATH": .58,
-            "FORTRESS_TRAIL": .76,
-            "RIDGE_TRAIL": .84,
-            "SPORTS_GROUND": .72,
+            "BRIDGE": .85, "RIVER": .82, "PEDESTRIAN_BRIDGE": .72,
+            "TRAIL": .68, "PARK": .58, "URBAN_STREET": .62,
+            "STAIR": .68, "HILL_ROAD": .70, "VIEW_DECK": .86,
+            "LEVEE": .78, "RIVER_STAIRS": .84, "PLAZA": .60, "BIKE_PATH": .68,
+            "PARK_EDGE": .72, "RIVER_ACCESS": .76, "PEDESTRIAN_PATH": .64,
+            "FORTRESS_TRAIL": .76, "RIDGE_TRAIL": .82, "SPORTS_GROUND": .70,
+            "ROAD_AXIS": .74, "ALLEY_AXIS": .66, "RAIL_EDGE": .76, "APARTMENT_GAP": .68,
         }
 
         for row in frame.itertuples(index=False):
             station = nearest_point(float(row.latitude), float(row.longitude), station_rows)
             office = nearest_point(float(row.latitude), float(row.longitude), office_rows)
             water = nearest_point(float(row.latitude), float(row.longitude), water_rows) if water_rows else None
-
             station_name, station_distance = (station[0], station[1]) if station else ("", 99999.0)
             office_name, office_distance = (office[0], office[1]) if office else ("", 99999.0)
             water_distance, water_bearing = (water[1], water[2]) if water else (99999.0, float("nan"))
-
             station_score = linear_score(station_distance, self.station_good_m, self.station_max_m)
             office_score = linear_score(office_distance, self.office_good_m, 5000.0)
             commute_score = min(1.0, .72 * station_score + .28 * office_score)
-
             source = str(row.source_type)
             sunset = float(getattr(row, "sunset_azimuth_deg", 270.0))
             view_score = base_view_by_source.get(source, .5)
@@ -141,41 +106,32 @@ class ContextAnalyzer:
                     * .35,
                 )
 
-            if source == "URBAN_STREET":
-                hint = "BUILDING_GAP"
+            if source in {"URBAN_STREET", "ALLEY_AXIS", "APARTMENT_GAP"}:
+                hint = "BUILDING_FRAME"
             elif source in {"BRIDGE", "RIVER", "LEVEE", "RIVER_STAIRS", "BIKE_PATH", "RIVER_ACCESS"} or (
                 water and water_distance <= self.water_good_m
             ):
                 hint = "WATER_VIEW"
-            elif source in {
-                "PEDESTRIAN_BRIDGE",
-                "STAIR",
-                "HILL_ROAD",
-                "VIEW_DECK",
-                "FORTRESS_TRAIL",
-                "RIDGE_TRAIL",
-            }:
+            elif source in {"PEDESTRIAN_BRIDGE", "STAIR", "HILL_ROAD", "VIEW_DECK", "RIDGE_TRAIL"}:
                 hint = "ELEVATED_VIEW"
-            elif source in {"TRAIL", "PARK", "PARK_EDGE", "PEDESTRIAN_PATH"}:
+            elif source in {"TRAIL", "PARK", "PARK_EDGE", "PEDESTRIAN_PATH", "FORTRESS_TRAIL"}:
                 hint = "WALK_SUNSET"
             elif source in {"PLAZA", "SPORTS_GROUND"}:
                 hint = "OPEN_SPACE"
+            elif source == "ROAD_AXIS":
+                hint = "ROAD_VANISHING_POINT"
+            elif source == "RAIL_EDGE":
+                hint = "RAIL_HORIZON"
             else:
                 hint = "COMMUTE_SUNSET"
 
             values = [
-                station_name,
-                round(station_distance, 1),
-                round(station_score, 4),
-                office_name,
-                round(office_distance, 1),
-                round(commute_score, 4),
+                station_name, round(station_distance, 1), round(station_score, 4),
+                office_name, round(office_distance, 1), round(commute_score, 4),
                 round(water_distance, 1) if water else float("nan"),
                 round(water_bearing, 1) if water else float("nan"),
                 round(alignment, 1) if water else float("nan"),
-                round(view_score, 4),
-                uniqueness_by_source.get(source, .5),
-                hint,
+                round(view_score, 4), uniqueness_by_source.get(source, .5), hint,
             ]
             for key, value in zip(out, values):
                 out[key].append(value)
