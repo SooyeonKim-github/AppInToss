@@ -18,6 +18,12 @@ SUNSET_TYPE_BY_SOURCE = {
     "RIVER_STAIRS": "수변계단노을",
     "PLAZA": "광장노을",
     "BIKE_PATH": "자전거길노을",
+    "PARK_EDGE": "공원끝노을",
+    "RIVER_ACCESS": "나들목노을",
+    "PEDESTRIAN_PATH": "보행로노을",
+    "FORTRESS_TRAIL": "성곽길노을",
+    "RIDGE_TRAIL": "능선노을",
+    "SPORTS_GROUND": "운동장노을",
 }
 
 
