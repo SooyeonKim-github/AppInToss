@@ -24,31 +24,51 @@ button:disabled { opacity: .58; }
 .brand-mark { font-size: 28px; font-weight: 900; letter-spacing: -1.1px; line-height: 1.2; }
 .brand-header p { margin: 7px 0 0; color: #8f877f; font-size: 15px; font-weight: 600; }
 
-.hero { min-height: 420px; display: flex; align-items: center; }
-.start-pick { width: 100%; text-align: center; padding: 30px 8px 20px; animation: reveal .4s ease both; }
-.start-pick-icon { font-size: 68px; line-height: 1; margin-bottom: 18px; filter: drop-shadow(0 8px 14px rgba(90,63,38,.10)); }
-.start-pick h2 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -1px; }
-.start-pick p { margin: 10px 0 24px; color: #8f877f; font-size: 15px; font-weight: 650; }
-.start-pick-button {
-  width: min(100%, 330px);
-  min-height: 72px;
-  border: 0;
-  border-radius: 23px;
-  background: #24211e;
-  color: white;
-  display: inline-flex;
+.hero {
+  min-height: 420px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 0 20px;
-  cursor: pointer;
-  box-shadow: 0 10px 26px rgba(42,34,28,.18);
-  transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
 }
-.start-pick-button:active { transform: scale(.98); box-shadow: 0 5px 14px rgba(42,34,28,.14); }
-.start-pick-button-icon { font-size: 30px; line-height: 1; }
-.start-pick-button strong { font-size: 18px; font-weight: 850; letter-spacing: -.4px; }
-.start-pick small { display: block; margin-top: 11px; color: #b0a79f; font-size: 11px; }
+.start-pick {
+  width: 250px;
+  height: 250px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(223, 205, 195, .72);
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.98) 0%, rgba(255,247,246,.96) 38%, rgba(248,237,244,.95) 68%, rgba(243,233,224,.94) 100%);
+  color: #2d2925;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 17px;
+  padding: 24px;
+  cursor: pointer;
+  box-shadow: 0 20px 48px rgba(91, 68, 49, .11), inset 0 1px 0 rgba(255,255,255,.95);
+  animation: reveal .4s ease both;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.start-pick:not(:disabled):hover {
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(213, 189, 177, .9);
+  box-shadow: 0 24px 54px rgba(91, 68, 49, .13), inset 0 1px 0 rgba(255,255,255,.98);
+}
+.start-pick:not(:disabled):active { transform: scale(.97); }
+.start-pick-icon {
+  font-size: 76px;
+  line-height: 1;
+  filter: drop-shadow(0 9px 15px rgba(90,63,38,.12));
+}
+.start-pick-title {
+  display: block;
+  max-width: 185px;
+  font-size: 23px;
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: -.8px;
+  text-align: center;
+}
 
 .drum-roll { width: 100%; text-align: center; padding: 48px 20px; }
 .drum-roll .eyebrow { margin: 0 0 30px; font-size: 25px; font-weight: 850; letter-spacing: -.9px; }
@@ -129,8 +149,9 @@ footer { padding: 22px 0 2px; text-align: center; color: #b1a89f; font-size: 11p
 @media (max-width: 360px) {
   .app-shell { padding-left: 14px; padding-right: 14px; }
   .brand-mark { font-size: 25px; }
-  .start-pick h2 { font-size: 25px; }
-  .start-pick-button { min-height: 68px; }
+  .start-pick { width: 224px; height: 224px; }
+  .start-pick-icon { font-size: 68px; }
+  .start-pick-title { font-size: 21px; }
   .menu-card h1 { font-size: 33px; }
   .illustration-hero { width: 160px; height: 160px; border-radius: 40px; }
   .like-button, .reroll-button { min-height: 74px; }
