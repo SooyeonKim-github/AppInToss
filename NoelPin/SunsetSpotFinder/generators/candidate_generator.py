@@ -71,6 +71,7 @@ class CandidateGenerator:
         source_type = source["source_type"]
         sunset_type = str(source.get("sunset_type") or "")
         name_property = source.get("name_property", "name")
+        sampling_mode = str(source.get("sampling_mode") or "all").lower()
         results: list[Candidate] = []
         global_index = 0
         for feature_index, feature in enumerate(geojson.get("features") or []):
@@ -83,7 +84,11 @@ class CandidateGenerator:
                     if role != "POINT"
                     else [(float(coord_set[0][1]), float(coord_set[0][0]))]
                 )
+                sampled, sampled_role = self._apply_sampling_mode(sampled, role, sampling_mode)
                 for lat, lon in sampled:
+                    metadata = dict(properties)
+                    if sampling_mode != "all":
+                        metadata["sampling_mode"] = sampling_mode
                     results.append(
                         _candidate(
                             source_type,
@@ -91,13 +96,35 @@ class CandidateGenerator:
                             lat,
                             lon,
                             global_index,
-                            role,
-                            dict(properties),
+                            sampled_role,
+                            metadata,
                             sunset_type,
                         )
                     )
                     global_index += 1
         return results
+
+    @staticmethod
+    def _apply_sampling_mode(
+        sampled: list[tuple[float, float]],
+        role: str,
+        sampling_mode: str,
+    ) -> tuple[list[tuple[float, float]], str]:
+        if sampling_mode != "west_edge" or role not in {"POLYGON_BOUNDARY", "LINE"} or not sampled:
+            return sampled, role
+
+        longitudes = [lon for _, lon in sampled]
+        min_lon = min(longitudes)
+        max_lon = max(longitudes)
+        lon_span = max_lon - min_lon
+        if lon_span <= 1e-9:
+            west = [min(sampled, key=lambda point: point[1])]
+        else:
+            cutoff = min_lon + lon_span * 0.25
+            west = [point for point in sampled if point[1] <= cutoff]
+            if not west:
+                west = [min(sampled, key=lambda point: point[1])]
+        return west, "WEST_EDGE"
 
     def _extract_point_sets(self, geometry_type: str, coordinates: Any) -> list[tuple[str, list[list[float]]]]:
         if geometry_type == "Point":
