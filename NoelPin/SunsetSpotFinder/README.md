@@ -5,8 +5,26 @@
 앱 사용자에게 노을 점수는 노출하지 않습니다. `candidate_priority`는 현장조사 순서를 정하기 위한 내부 값입니다.
 
 ## V1 — Candidate Generator
-- 보도육교 CSV 점 데이터
-- 교량/공원/둘레길/한강변 GeoJSON
+
+기존 후보 소스:
+- 보도육교 CSV → `육교위노을`
+- 교량 GeoJSON → `다리위노을`
+- 공원 GeoJSON → `산책노을`
+- 둘레길 GeoJSON → `산책노을`
+- 한강변 GeoJSON → `한강노을`
+
+1차 확장 후보 소스:
+- 계단 → `STAIR / 계단위노을`
+- 언덕길 → `HILL_ROAD / 언덕길노을`
+- 전망데크 → `VIEW_DECK / 전망데크노을`
+- 제방 → `LEVEE / 제방위노을`
+- 수변계단 → `RIVER_STAIRS / 수변계단노을`
+- 광장 → `PLAZA / 광장노을`
+- 자전거길 → `BIKE_PATH / 자전거길노을`
+
+V1에서 `source_type`과 사용자 노출용 `sunset_type`을 함께 생성합니다. 이후 V2~V5를 통과해도 최초 장소형 `sunset_type`은 유지되며, `퇴근길노을`, `건물사이노을`, `한강노을` 같은 상황/구도 정보는 추가 태그로만 붙습니다.
+
+공통 처리:
 - LineString/Polygon 경계를 일정 간격으로 세분화
 - NOAA 방식 일몰시각/일몰 방위각 계산(외부 천문 API 불필요)
 - 실데이터가 없을 때 demo 후보 자동 사용
@@ -15,19 +33,20 @@
 - 지하철역/업무지구 최단거리
 - 한강/수변 거리 및 일몰방향 정렬
 - DEM 고도 샘플링(선택)
-- 육교/교량 구조물 높이 보정
+- 육교/교량/계단/전망데크/제방 등 구조물 높이 보정
 - 건물/나무의 일몰 sector 가림 추정
 
 ## V3 — Commute + Building Gap
 - 역 접근성 기반 `is_commute_candidate`
 - 동서 방향 도로에서 `URBAN_STREET` 신규 후보 생성
 - 주변 도로 방향으로 `BUILDING_GAP` 힌트
-- 건물사이/한강/퇴근길 육교/산책노을 카테고리 힌트
+- `BUILDING_GAP`은 내부 힌트이며 V1의 장소형 노을 종류를 덮어쓰지 않음
 
 ## V4 — Subway Window Sunset
 - 지상 지하철/교량 구간 필터
 - 열차 진행방향 bearing 계산
 - 일몰 azimuth와 비교해 `왼쪽 창문 / 오른쪽 창문 / 앞쪽 / 뒤쪽` 산출
+- 지하철 후보의 `sunset_type`은 `지하철창밖노을`
 
 ## V5 — Ranking + Verification Skeleton
 - 내부 후보 우선순위 TOP N
