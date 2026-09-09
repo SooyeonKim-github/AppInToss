@@ -19,6 +19,7 @@ class Menu(Base):
     weight: Mapped[int] = mapped_column(Integer, default=1)
     emoji: Mapped[str] = mapped_column(String(16), default="🍽️")
     tagline: Mapped[str] = mapped_column(String(120), default="오늘 저녁은 이걸로!")
+    image_key: Mapped[str | None] = mapped_column(String(120), nullable=True, default=None)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
 
 

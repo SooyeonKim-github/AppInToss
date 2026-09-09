@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 
@@ -16,6 +16,20 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expi
 
 class Base(DeclarativeBase):
     pass
+
+
+def ensure_menu_image_column() -> None:
+    """Tiny dev migration for databases created before image_key existed."""
+    inspector = inspect(engine)
+    if "menus" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("menus")}
+    if "image_key" in columns:
+        return
+
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE menus ADD COLUMN image_key VARCHAR(120)"))
 
 
 def get_db():

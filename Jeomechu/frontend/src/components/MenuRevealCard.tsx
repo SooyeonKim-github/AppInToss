@@ -1,3 +1,4 @@
+import { MenuIllustration } from "./MenuIllustration";
 import type { Menu } from "../types";
 
 const rarityCopy = {
@@ -22,7 +23,7 @@ export function MenuRevealCard({ menu }: { menu: Menu }) {
   return (
     <section className={`menu-card rarity-${menu.rarity.toLowerCase()}`}>
       <p className="rarity-copy">{rarityCopy[menu.rarity]}</p>
-      <div className="food-visual" aria-hidden="true">{menu.emoji}</div>
+      <MenuIllustration imageKey={menu.imageKey} emoji={menu.emoji} label={menu.name} />
       <h1>{menu.name}</h1>
       <p className="category">{categoryLabel[menu.category] ?? menu.category}</p>
       <p className="tagline">{menu.tagline}</p>

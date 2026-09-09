@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 from datetime import date
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -14,6 +14,7 @@ from .models import DailyPick, Menu, MenuLike
 
 SEOUL = ZoneInfo("Asia/Seoul")
 DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "menus.json"
+IMAGE_MAP_PATH = Path(__file__).resolve().parents[1] / "data" / "menu_images.json"
 
 CATEGORY_EMOJI = {
     "KOREAN": "🍚",
@@ -40,11 +41,18 @@ def today_seoul() -> date:
     return datetime.now(SEOUL).date()
 
 
+def _image_map() -> dict[str, str]:
+    if not IMAGE_MAP_PATH.exists():
+        return {}
+    return json.loads(IMAGE_MAP_PATH.read_text(encoding="utf-8"))
+
+
 def seed_menus_if_empty(db: Session) -> int:
     if db.scalar(select(func.count(Menu.id))) or 0:
         return 0
 
     catalog = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    image_map = _image_map()
     inserted = 0
     menu_id = 1
     for rarity, categories in catalog.items():
@@ -60,6 +68,7 @@ def seed_menus_if_empty(db: Session) -> int:
                         weight=RARITY_WEIGHT[rarity],
                         emoji=CATEGORY_EMOJI.get(category, "🍽️"),
                         tagline=RARITY_TAGLINE[rarity],
+                        image_key=image_map.get(name),
                         enabled=True,
                     )
                 )
@@ -67,6 +76,25 @@ def seed_menus_if_empty(db: Session) -> int:
                 inserted += 1
     db.commit()
     return inserted
+
+
+def sync_menu_images(db: Session) -> int:
+    """Keep DB image_key values aligned with the versioned image manifest."""
+    image_map = _image_map()
+    if not image_map:
+        return 0
+
+    changed = 0
+    menus = db.scalars(select(Menu).where(Menu.name.in_(list(image_map.keys())))).all()
+    for menu in menus:
+        image_key = image_map.get(menu.name)
+        if menu.image_key != image_key:
+            menu.image_key = image_key
+            changed += 1
+
+    if changed:
+        db.commit()
+    return changed
 
 
 def _stable_unit(seed: str) -> float:

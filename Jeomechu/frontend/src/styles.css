@@ -24,7 +24,7 @@ button:disabled { opacity: .58; }
 .brand-mark { font-size: 21px; font-weight: 850; letter-spacing: -.7px; }
 .brand-header p { margin: 5px 0 0; color: #9b938b; font-size: 13px; }
 
-.hero { min-height: 390px; display: flex; align-items: center; }
+.hero { min-height: 420px; display: flex; align-items: center; }
 .drum-roll { width: 100%; text-align: center; padding: 48px 20px; }
 .drum-roll .eyebrow { margin: 0 0 30px; font-size: 22px; font-weight: 800; letter-spacing: -.7px; }
 .drum { font-size: 70px; animation: drumShake .55s ease-in-out infinite alternate; transform-origin: center; }
@@ -38,7 +38,7 @@ button:disabled { opacity: .58; }
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 365px;
+  min-height: 395px;
   padding: 28px 24px 25px;
   border-radius: 30px;
   background: rgba(255,255,255,.92);
@@ -51,7 +51,34 @@ button:disabled { opacity: .58; }
 .menu-card.rarity-uncommon::before { background: #ffc05d; }
 .menu-card.rarity-rare::before { background: linear-gradient(90deg, #ff9e80, #ffc65b, #b6d78b); }
 .rarity-copy { margin: 0; font-size: 14px; font-weight: 750; color: #786c63; }
-.food-visual { width: 142px; height: 142px; margin: 22px auto 16px; display: grid; place-items: center; border-radius: 42px; font-size: 82px; background: linear-gradient(145deg, #fff8ef, #fff0df); box-shadow: inset 0 0 0 1px rgba(255,255,255,.9); }
+
+.menu-illustration {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background-repeat: no-repeat;
+  background-size: 600% 500%;
+  background-color: #fff4e7;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.92), 0 7px 22px rgba(92, 68, 45, .10);
+}
+.illustration-hero {
+  width: 176px;
+  height: 176px;
+  margin: 20px auto 16px;
+  border-radius: 45px;
+}
+.illustration-rank {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.9);
+}
+.illustration-fallback {
+  background-image: linear-gradient(145deg, #fff8ef, #fff0df);
+}
+.illustration-hero.illustration-fallback { font-size: 82px; }
+.illustration-rank.illustration-fallback { font-size: 18px; }
+
 .menu-card h1 { margin: 0; font-size: 34px; line-height: 1.18; letter-spacing: -1.5px; }
 .category { margin: 10px 0 0; font-size: 13px; color: #a0968d; font-weight: 650; }
 .tagline { margin: 18px 0 0; color: #675f58; font-size: 15px; }
@@ -71,10 +98,9 @@ button:disabled { opacity: .58; }
 .section-title { display: flex; align-items: center; justify-content: space-between; font-weight: 800; font-size: 14px; }
 .section-title small { font-size: 10px; color: #aaa199; font-weight: 600; }
 .ranking-card ol { list-style: none; margin: 12px 0 0; padding: 0; }
-.ranking-card li { display: grid; grid-template-columns: 22px 29px 1fr auto; align-items: center; min-height: 39px; border-top: 1px solid #f2ece6; font-size: 13px; }
+.ranking-card li { display: grid; grid-template-columns: 22px 42px 1fr auto; align-items: center; min-height: 46px; border-top: 1px solid #f2ece6; font-size: 13px; }
 .ranking-card li:first-child { border-top: 0; }
 .rank { color: #b5aca4; font-weight: 850; }
-.rank-emoji { font-size: 18px; }
 .rank-like { color: #a89f97; font-size: 11px; }
 .error-banner { padding: 11px 13px; border-radius: 12px; background: #fff0ed; color: #b94e36; font-size: 12px; }
 footer { padding: 22px 0 2px; text-align: center; color: #b1a89f; font-size: 11px; }
@@ -86,5 +112,6 @@ footer { padding: 22px 0 2px; text-align: center; color: #b1a89f; font-size: 11p
 @media (max-width: 360px) {
   .app-shell { padding-left: 14px; padding-right: 14px; }
   .menu-card h1 { font-size: 30px; }
+  .illustration-hero { width: 160px; height: 160px; border-radius: 40px; }
   .reroll-button small { display: none; }
 }

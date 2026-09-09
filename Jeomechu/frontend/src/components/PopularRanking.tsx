@@ -1,3 +1,4 @@
+import { MenuIllustration } from "./MenuIllustration";
 import type { RankingItem } from "../types";
 
 function compact(value: number) {
@@ -20,7 +21,7 @@ export function PopularRanking({ items }: { items: RankingItem[] }) {
         {items.slice(0, 3).map((item) => (
           <li key={item.menuId}>
             <span className="rank">{item.rank}</span>
-            <span className="rank-emoji">{item.emoji}</span>
+            <MenuIllustration imageKey={item.imageKey} emoji={item.emoji} label={item.name} size="rank" />
             <strong>{item.name}</strong>
             <span className="rank-like">❤️ {compact(item.likes)}</span>
           </li>

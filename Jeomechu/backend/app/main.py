@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 load_dotenv()
 
-from .database import Base, engine, get_db, session_scope
+from .database import Base, engine, ensure_menu_image_column, get_db, session_scope
 from .models import Menu
 from .schemas import ClientRequest, LikeResponse, MenuOut, MenuPickResponse, RankingItem
 from .services import (
@@ -20,6 +20,7 @@ from .services import (
     like_count,
     ranking_today,
     seed_menus_if_empty,
+    sync_menu_images,
     toggle_like,
 )
 
@@ -33,6 +34,7 @@ def menu_out(menu: Menu) -> MenuOut:
         rarity=menu.rarity,
         emoji=menu.emoji,
         tagline=menu.tagline,
+        imageKey=menu.image_key,
     )
 
 
@@ -48,12 +50,14 @@ def pick_response(db: Session, client_id: str, pick) -> MenuPickResponse:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(bind=engine)
+    ensure_menu_image_column()
     with session_scope() as db:
         seed_menus_if_empty(db)
+        sync_menu_images(db)
     yield
 
 
-app = FastAPI(title="저메추 API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="저메추 API", version="0.2.0", lifespan=lifespan)
 
 origins = [item.strip() for item in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if item.strip()]
 app.add_middleware(
@@ -98,6 +102,13 @@ def like(menu_id: int, payload: ClientRequest, db: Session = Depends(get_db)):
 def ranking(db: Session = Depends(get_db)):
     rows = ranking_today(db, limit=10)
     return [
-        RankingItem(rank=index, menuId=menu.id, name=menu.name, emoji=menu.emoji, likes=likes)
+        RankingItem(
+            rank=index,
+            menuId=menu.id,
+            name=menu.name,
+            emoji=menu.emoji,
+            imageKey=menu.image_key,
+            likes=likes,
+        )
         for index, (menu, likes) in enumerate(rows, start=1)
     ]

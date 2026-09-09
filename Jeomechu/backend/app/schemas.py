@@ -11,6 +11,7 @@ class MenuOut(BaseModel):
     rarity: str
     emoji: str
     tagline: str
+    imageKey: str | None = None
 
 
 class MenuPickResponse(BaseModel):
@@ -34,4 +35,5 @@ class RankingItem(BaseModel):
     menuId: int
     name: str
     emoji: str
+    imageKey: str | None = None
     likes: int

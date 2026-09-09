@@ -8,6 +8,7 @@ export interface Menu {
   rarity: MenuRarity;
   emoji: string;
   tagline: string;
+  imageKey?: string | null;
 }
 
 export interface MenuPickResponse {
@@ -22,5 +23,6 @@ export interface RankingItem {
   menuId: number;
   name: string;
   emoji: string;
+  imageKey?: string | null;
   likes: number;
 }
