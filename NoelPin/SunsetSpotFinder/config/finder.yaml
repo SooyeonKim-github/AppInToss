@@ -18,6 +18,7 @@ candidate_sources:
     kind: point_csv
     path: data/raw/pedestrian_bridges.csv
     source_type: PEDESTRIAN_BRIDGE
+    sunset_type: 육교위노을
     name_column: name
     lat_column: latitude
     lon_column: longitude
@@ -26,24 +27,83 @@ candidate_sources:
     kind: geojson
     path: data/raw/bridges.geojson
     source_type: BRIDGE
+    sunset_type: 다리위노을
     name_property: name
   parks:
     enabled: true
     kind: geojson
     path: data/raw/parks.geojson
     source_type: PARK
+    sunset_type: 산책노을
     name_property: name
   trails:
     enabled: true
     kind: geojson
     path: data/raw/trails.geojson
     source_type: TRAIL
+    sunset_type: 산책노을
     name_property: name
   riverside:
     enabled: true
     kind: geojson
     path: data/raw/riverside.geojson
     source_type: RIVER
+    sunset_type: 한강노을
+    name_property: name
+
+  # V1 first-wave expansion: unusual but commute-accessible sunset structures.
+  stairs:
+    enabled: true
+    kind: geojson
+    path: data/raw/stairs.geojson
+    source_type: STAIR
+    sunset_type: 계단위노을
+    name_property: name
+  hill_roads:
+    enabled: true
+    kind: geojson
+    path: data/raw/hill_roads.geojson
+    source_type: HILL_ROAD
+    sunset_type: 언덕길노을
+    name_property: name
+  view_decks:
+    enabled: true
+    kind: point_csv
+    path: data/raw/view_decks.csv
+    source_type: VIEW_DECK
+    sunset_type: 전망데크노을
+    name_column: name
+    lat_column: latitude
+    lon_column: longitude
+  levees:
+    enabled: true
+    kind: geojson
+    path: data/raw/levees.geojson
+    source_type: LEVEE
+    sunset_type: 제방위노을
+    name_property: name
+  river_stairs:
+    enabled: true
+    kind: point_csv
+    path: data/raw/river_stairs.csv
+    source_type: RIVER_STAIRS
+    sunset_type: 수변계단노을
+    name_column: name
+    lat_column: latitude
+    lon_column: longitude
+  plazas:
+    enabled: true
+    kind: geojson
+    path: data/raw/plazas.geojson
+    source_type: PLAZA
+    sunset_type: 광장노을
+    name_property: name
+  bike_paths:
+    enabled: true
+    kind: geojson
+    path: data/raw/bike_paths.geojson
+    source_type: BIKE_PATH
+    sunset_type: 자전거길노을
     name_property: name
 
 context_layers:
@@ -73,6 +133,13 @@ analysis:
     TRAIL: 0
     RIVER: 0
     URBAN_STREET: 0
+    STAIR: 2
+    HILL_ROAD: 0
+    VIEW_DECK: 4
+    LEVEE: 2
+    RIVER_STAIRS: 1
+    PLAZA: 0
+    BIKE_PATH: 0
 
 ranking:
   weights:
