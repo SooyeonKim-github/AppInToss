@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import os
 from contextlib import asynccontextmanager
 
-from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from sqlalchemy.orm import Session
-
-load_dotenv()
 
 from .database import Base, engine, ensure_menu_image_column, get_db, session_scope
 from .models import Menu
@@ -23,6 +20,7 @@ from .services import (
     sync_menu_images,
     toggle_like,
 )
+from .settings import settings
 
 
 def menu_out(menu: Menu) -> MenuOut:
@@ -57,21 +55,35 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="저메추 API", version="0.2.0", lifespan=lifespan)
+app = FastAPI(
+    title="김대리의 저메추 API",
+    version="0.3.0",
+    lifespan=lifespan,
+    docs_url=None if settings.is_production else "/docs",
+    redoc_url=None if settings.is_production else "/redoc",
+)
 
-origins = [item.strip() for item in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if item.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=list(settings.cors_origins),
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 
 @app.get("/health")
-def health():
-    return {"ok": True}
+def health(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="database unavailable") from exc
+
+    return {
+        "ok": True,
+        "environment": settings.environment,
+        "database": engine.url.get_backend_name(),
+    }
 
 
 @app.get("/api/v1/menu/today", response_model=MenuPickResponse)
