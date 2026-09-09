@@ -51,7 +51,7 @@ candidate_sources:
     sunset_type: 한강노을
     name_property: name
 
-  # V1 first-wave expansion: unusual but commute-accessible sunset structures.
+  # V1 first-wave expansion
   stairs:
     enabled: true
     kind: geojson
@@ -106,6 +106,54 @@ candidate_sources:
     sunset_type: 자전거길노을
     name_property: name
 
+  # V1 second-wave expansion
+  # Reuses parks.geojson but only generates candidates from the western 25% boundary.
+  park_edges:
+    enabled: true
+    kind: geojson
+    path: data/raw/parks.geojson
+    source_type: PARK_EDGE
+    sunset_type: 공원끝노을
+    name_property: name
+    sampling_mode: west_edge
+  river_access:
+    enabled: true
+    kind: point_csv
+    path: data/raw/river_access.csv
+    source_type: RIVER_ACCESS
+    sunset_type: 나들목노을
+    name_column: name
+    lat_column: latitude
+    lon_column: longitude
+  pedestrian_paths:
+    enabled: true
+    kind: geojson
+    path: data/raw/pedestrian_paths.geojson
+    source_type: PEDESTRIAN_PATH
+    sunset_type: 보행로노을
+    name_property: name
+  fortress_trails:
+    enabled: true
+    kind: geojson
+    path: data/raw/fortress_trails.geojson
+    source_type: FORTRESS_TRAIL
+    sunset_type: 성곽길노을
+    name_property: name
+  ridge_trails:
+    enabled: true
+    kind: geojson
+    path: data/raw/ridge_trails.geojson
+    source_type: RIDGE_TRAIL
+    sunset_type: 능선노을
+    name_property: name
+  sports_grounds:
+    enabled: true
+    kind: geojson
+    path: data/raw/sports_grounds.geojson
+    source_type: SPORTS_GROUND
+    sunset_type: 운동장노을
+    name_property: name
+
 context_layers:
   stations_csv: data/raw/subway_stations.csv
   office_hubs_csv: data/raw/office_hubs.csv
@@ -140,6 +188,12 @@ analysis:
     RIVER_STAIRS: 1
     PLAZA: 0
     BIKE_PATH: 0
+    PARK_EDGE: 0
+    RIVER_ACCESS: 0
+    PEDESTRIAN_PATH: 0
+    FORTRESS_TRAIL: 1
+    RIDGE_TRAIL: 0
+    SPORTS_GROUND: 0
 
 ranking:
   weights:
