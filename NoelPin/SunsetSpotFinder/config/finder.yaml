@@ -1,0 +1,90 @@
+project:
+  city: Seoul
+  timezone: Asia/Seoul
+  reference_date: '2026-09-22'
+  top_n: 100
+  sample_interval_m: 50
+  random_seed: 42
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  output_dir: data/output
+  dem_path: data/raw/seoul_dem.tif
+
+candidate_sources:
+  pedestrian_bridges:
+    enabled: true
+    kind: point_csv
+    path: data/raw/pedestrian_bridges.csv
+    source_type: PEDESTRIAN_BRIDGE
+    name_column: name
+    lat_column: latitude
+    lon_column: longitude
+  bridges:
+    enabled: true
+    kind: geojson
+    path: data/raw/bridges.geojson
+    source_type: BRIDGE
+    name_property: name
+  parks:
+    enabled: true
+    kind: geojson
+    path: data/raw/parks.geojson
+    source_type: PARK
+    name_property: name
+  trails:
+    enabled: true
+    kind: geojson
+    path: data/raw/trails.geojson
+    source_type: TRAIL
+    name_property: name
+  riverside:
+    enabled: true
+    kind: geojson
+    path: data/raw/riverside.geojson
+    source_type: RIVER
+    name_property: name
+
+context_layers:
+  stations_csv: data/raw/subway_stations.csv
+  office_hubs_csv: data/raw/office_hubs.csv
+  trees_csv: data/raw/trees.csv
+  buildings_geojson: data/raw/buildings.geojson
+  roads_geojson: data/raw/roads.geojson
+  water_geojson: data/raw/water.geojson
+  subway_segments_csv: data/raw/subway_segments.csv
+
+analysis:
+  sunset_azimuth_min: 230
+  sunset_azimuth_max: 310
+  station_good_m: 500
+  station_max_m: 1200
+  office_good_m: 1000
+  water_good_m: 1200
+  obstruction_radius_m: 800
+  obstruction_half_angle_deg: 8
+  tree_radius_m: 120
+  building_height_default_m: 18
+  source_structure_bonus_m:
+    PEDESTRIAN_BRIDGE: 5
+    BRIDGE: 7
+    PARK: 0
+    TRAIL: 0
+    RIVER: 0
+    URBAN_STREET: 0
+
+ranking:
+  weights:
+    openness: 0.30
+    commute: 0.25
+    view: 0.15
+    elevation: 0.10
+    station: 0.10
+    uniqueness: 0.10
+
+verification:
+  publish_statuses:
+    - FIELD_VERIFIED
+  remote_review_status: REMOTE_VERIFIED
+  initial_status: CANDIDATE
