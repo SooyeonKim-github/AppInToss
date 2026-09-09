@@ -2,6 +2,12 @@
 
 현재 구조는 로컬에서는 SQLite를 그대로 사용하고, 운영에서는 Railway PostgreSQL을 `DATABASE_URL`만으로 자동 사용하도록 구성되어 있습니다.
 
+현재 운영 백엔드 주소:
+
+```text
+https://jeomechu-api-production.up.railway.app
+```
+
 ## 1. 로컬 개발
 
 백엔드 `.env`는 기존 방식 그대로 사용할 수 있습니다.
@@ -25,29 +31,33 @@ cd Jeomechu
 http://localhost:8000/health
 ```
 
-## 2. Railway 백엔드 서비스 생성
+## 2. Railway 백엔드 서비스
 
-GitHub 저장소 `SooyeonKim-github/AppInToss`를 Railway 서비스에 연결합니다.
+GitHub 저장소 `SooyeonKim-github/AppInToss`의 `main` 브랜치를 Railway 서비스 `jeomechu-api`에 연결했습니다.
 
-이 저장소는 모노레포이므로 Railway Backend 서비스의 Root Directory를 아래와 같이 지정합니다.
+모노레포 Root Directory:
 
 ```text
 /Jeomechu/backend
 ```
 
-Railway Config as Code 경로는 저장소 루트 기준 절대 경로로 지정합니다.
+빌드는 `Jeomechu/backend/Dockerfile`을 사용합니다. Railway가 주입하는 `PORT` 환경변수로 FastAPI가 실행되며 `/health`를 deployment health check로 사용합니다.
+
+현재 Railway 서비스 설정:
 
 ```text
-/Jeomechu/backend/railway.toml
+Service: jeomechu-api
+Root Directory: /Jeomechu/backend
+Dockerfile: Dockerfile
+Healthcheck: /health
+Restart Policy: ON_FAILURE
 ```
 
-`Jeomechu/backend/Dockerfile`이 자동으로 사용되며 Railway의 `PORT` 환경변수로 FastAPI가 실행됩니다.
+## 3. PostgreSQL
 
-## 3. PostgreSQL 추가
+같은 Railway 프로젝트의 `Postgres` 서비스를 사용합니다. PostgreSQL 서비스에는 persistent volume이 연결되어 있습니다.
 
-같은 Railway 프로젝트에서 PostgreSQL 서비스를 추가합니다.
-
-PostgreSQL 서비스 이름이 `Postgres`인 경우 Backend 서비스의 Variables에 다음 값을 설정합니다.
+Backend Variables:
 
 ```env
 APP_ENV=production
@@ -63,29 +73,21 @@ DB_POOL_RECYCLE_SECONDS=300
 
 초기 출시에서는 Apps-in-Toss WebView의 실제 Origin이 확정되기 전이므로 `CORS_ORIGINS=*`를 사용합니다. 이 API는 쿠키 기반 인증을 사용하지 않으며 CORS credentials도 비활성화되어 있습니다. 출시 후 실제 Origin이 확인되면 쉼표로 구분해 제한할 수 있습니다.
 
-예:
+## 4. 운영 API
 
-```env
-CORS_ORIGINS=https://example-origin-1,https://example-origin-2
-```
-
-## 4. Public Domain 생성
-
-Railway Backend 서비스의 Public Networking에서 HTTPS 도메인을 생성합니다.
-
-예:
+Railway Public Networking:
 
 ```text
 https://jeomechu-api-production.up.railway.app
 ```
 
-아래 주소가 정상이어야 합니다.
+Health endpoint:
 
 ```text
 https://jeomechu-api-production.up.railway.app/health
 ```
 
-예상 응답:
+정상 응답 형태:
 
 ```json
 {
@@ -95,43 +97,47 @@ https://jeomechu-api-production.up.railway.app/health
 }
 ```
 
+Railway deployment health check에서 `/health` `200 OK`를 확인했습니다.
+
 첫 기동 시 테이블이 생성되고 `backend/data/menus.json`의 메뉴 데이터가 PostgreSQL에 자동 seed 됩니다.
 
 ## 5. 프론트 운영 API 연결
 
-Railway 도메인이 발급되면:
+프론트의 production 기본 API 주소는 이미 아래 주소로 연결되어 있습니다.
 
-```powershell
-cd Jeomechu\frontend
-Copy-Item .env.production.example .env.production
+```text
+https://jeomechu-api-production.up.railway.app
 ```
 
-`.env.production`을 다음처럼 수정합니다.
+따라서 `.env.production`이 없어도 `npm run build`의 production bundle은 Railway API를 사용합니다. 필요하면 `VITE_API_BASE_URL` 환경변수로 덮어쓸 수 있습니다.
+
+`.env.production.example`:
 
 ```env
 VITE_API_BASE_URL=https://jeomechu-api-production.up.railway.app
 VITE_REWARDED_AD_UNIT_ID=
 ```
 
-`VITE_API_BASE_URL` 끝의 `/` 유무는 프론트에서 자동 정리합니다.
-
-그 다음 앱인토스 번들을 빌드합니다.
+앱인토스 번들 빌드:
 
 ```powershell
+cd Jeomechu\frontend
 npm install
 npm run typecheck
 npm run build
 ```
 
-## 6. 배포 전 체크리스트
+## 6. 출시 전 체크리스트
 
-- `/health`가 `ok: true`를 반환하는지 확인
+- Railway `jeomechu-api` deployment 상태가 SUCCESS인지 확인
+- `/health`가 `200 OK`인지 확인
 - health 응답의 `database`가 `postgresql`인지 확인
 - 앱 첫 메뉴가 정상 노출되는지 확인
 - 좋아요가 새로고침 후에도 유지되는지 확인
 - 다른 기기에서도 같은 오늘 인기 순위가 보이는지 확인
 - 다시뽑기 결과가 같은 날 이전 메뉴와 중복되지 않는지 확인
-- `.env` / `.env.production` 파일이 Git에 올라가지 않았는지 확인
+- 실제 Apps-in-Toss Origin 확인 후 CORS 제한 검토
+- 리워드 광고 ID 설정
 
 ## 운영 구조
 
