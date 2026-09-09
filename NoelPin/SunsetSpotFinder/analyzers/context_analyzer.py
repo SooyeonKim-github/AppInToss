@@ -70,7 +70,7 @@ class ContextAnalyzer:
             ]
         }
 
-        # Values are internal discovery priors only; they are never exposed as a user sunset score.
+        # Internal priors only. NoelPin never exposes these values as a public sunset score.
         uniqueness_by_source = {
             "PEDESTRIAN_BRIDGE": .95,
             "BRIDGE": .90,
@@ -85,6 +85,12 @@ class ContextAnalyzer:
             "RIVER_STAIRS": .84,
             "PLAZA": .65,
             "BIKE_PATH": .70,
+            "PARK_EDGE": .74,
+            "RIVER_ACCESS": .86,
+            "PEDESTRIAN_PATH": .62,
+            "FORTRESS_TRAIL": .88,
+            "RIDGE_TRAIL": .92,
+            "SPORTS_GROUND": .68,
         }
         base_view_by_source = {
             "BRIDGE": .85,
@@ -100,6 +106,12 @@ class ContextAnalyzer:
             "RIVER_STAIRS": .84,
             "PLAZA": .60,
             "BIKE_PATH": .68,
+            "PARK_EDGE": .72,
+            "RIVER_ACCESS": .80,
+            "PEDESTRIAN_PATH": .58,
+            "FORTRESS_TRAIL": .76,
+            "RIDGE_TRAIL": .84,
+            "SPORTS_GROUND": .72,
         }
 
         for row in frame.itertuples(index=False):
@@ -131,15 +143,22 @@ class ContextAnalyzer:
 
             if source == "URBAN_STREET":
                 hint = "BUILDING_GAP"
-            elif source in {"BRIDGE", "RIVER", "LEVEE", "RIVER_STAIRS", "BIKE_PATH"} or (
+            elif source in {"BRIDGE", "RIVER", "LEVEE", "RIVER_STAIRS", "BIKE_PATH", "RIVER_ACCESS"} or (
                 water and water_distance <= self.water_good_m
             ):
                 hint = "WATER_VIEW"
-            elif source in {"PEDESTRIAN_BRIDGE", "STAIR", "HILL_ROAD", "VIEW_DECK"}:
+            elif source in {
+                "PEDESTRIAN_BRIDGE",
+                "STAIR",
+                "HILL_ROAD",
+                "VIEW_DECK",
+                "FORTRESS_TRAIL",
+                "RIDGE_TRAIL",
+            }:
                 hint = "ELEVATED_VIEW"
-            elif source in {"TRAIL", "PARK"}:
+            elif source in {"TRAIL", "PARK", "PARK_EDGE", "PEDESTRIAN_PATH"}:
                 hint = "WALK_SUNSET"
-            elif source == "PLAZA":
+            elif source in {"PLAZA", "SPORTS_GROUND"}:
                 hint = "OPEN_SPACE"
             else:
                 hint = "COMMUTE_SUNSET"
