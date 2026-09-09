@@ -1,11 +1,9 @@
 import type { MenuPickResponse, RankingItem } from "../types";
 
+const PRODUCTION_API_BASE = "https://jeomechu-api-production.up.railway.app";
 const configuredApiBase = import.meta.env.VITE_API_BASE_URL?.trim();
-const API_BASE = (configuredApiBase || "http://localhost:8000").replace(/\/+$/, "");
-
-if (import.meta.env.PROD && !configuredApiBase) {
-  console.error("VITE_API_BASE_URL is not configured for the production build.");
-}
+const defaultApiBase = import.meta.env.PROD ? PRODUCTION_API_BASE : "http://localhost:8000";
+const API_BASE = (configuredApiBase || defaultApiBase).replace(/\/+$/, "");
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
