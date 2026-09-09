@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { Accuracy, getCurrentLocation } from "@apps-in-toss/web-framework";
 import { SunsetMap } from "./SunsetMap";
 import { sunsetSpots, type SunsetSpot } from "./spots";
 
@@ -22,8 +23,17 @@ export function App() {
 
   const handleSelect = useCallback((spot: SunsetSpot) => setSelectedSpot(spot), []);
 
-  function scrollToMap() {
+  async function scrollToMap() {
     mapSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    try {
+      await getCurrentLocation({ accuracy: Accuracy.Balanced });
+      setLocationMessage("현재 위치 기준");
+      return;
+    } catch {
+      // Local browser preview fallback. Apps-in-Toss uses getCurrentLocation above.
+    }
+
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       () => setLocationMessage("현재 위치 기준"),
