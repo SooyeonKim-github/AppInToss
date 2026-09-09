@@ -2,7 +2,6 @@ import { DrumRoll } from "./components/DrumRoll";
 import { LikeButton } from "./components/LikeButton";
 import { MenuRevealCard } from "./components/MenuRevealCard";
 import { PopularRanking } from "./components/PopularRanking";
-import { StartPickButton } from "./components/StartPickButton";
 import { useJeomechu } from "./hooks/useJeomechu";
 
 export default function App() {
@@ -19,6 +18,14 @@ export default function App() {
     reroll,
   } = useJeomechu();
 
+  const handleReroll = () => {
+    if (!started) {
+      startPick();
+      return;
+    }
+    reroll();
+  };
+
   return (
     <main className="app-shell">
       <header className="brand-header">
@@ -28,7 +35,10 @@ export default function App() {
 
       <section className="hero">
         {!started ? (
-          <StartPickButton disabled={busy || !pick} onClick={startPick} />
+          <div className="start-pick">
+            <div className="start-pick-icon" aria-hidden="true">🍽️</div>
+            <h2>오늘 저녁 뭐 먹지?</h2>
+          </div>
         ) : !revealed || !pick ? (
           <DrumRoll />
         ) : (
@@ -38,15 +48,17 @@ export default function App() {
 
       {error && <p className="error-banner">{error}</p>}
 
-      {pick && hasRevealedOnce && (
-        <div className="actions">
-          <LikeButton liked={pick.liked} disabled={busy} onClick={toggleLike} />
-          <button className="reroll-button" disabled={busy} onClick={reroll}>
-            <span className="action-main"><span className="action-icon">🎲</span><span>다시뽑기</span></span>
-            <small className="action-sub">한 번 더 골라요</small>
-          </button>
-        </div>
-      )}
+      <div className="actions">
+        <LikeButton
+          liked={pick?.liked ?? false}
+          disabled={!pick || !hasRevealedOnce || busy}
+          onClick={toggleLike}
+        />
+        <button className="reroll-button" disabled={!pick || busy} onClick={handleReroll}>
+          <span className="action-main"><span className="action-icon">🎲</span><span>다시뽑기</span></span>
+          <small className="action-sub">한 번 더 골라요</small>
+        </button>
+      </div>
 
       <PopularRanking items={ranking} />
       <footer>내일은 또 다른 저메추가 찾아와요.</footer>
