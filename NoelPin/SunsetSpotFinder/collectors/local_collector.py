@@ -6,7 +6,13 @@ from typing import Any
 import pandas as pd
 
 from config_loader import resolve_path
-from demo_data import demo_office_hubs, demo_points, demo_stations, demo_subway_segments
+from demo_data import (
+    demo_automatic_layers,
+    demo_office_hubs,
+    demo_points,
+    demo_stations,
+    demo_subway_segments,
+)
 
 
 class LocalCollector:
@@ -47,20 +53,39 @@ class LocalCollector:
         return payloads
 
     def stations(self) -> pd.DataFrame:
-        frame = self.load_csv(self.config["context_layers"]["stations_csv"], ["station", "line", "latitude", "longitude"])
+        frame = self.load_csv(
+            self.config["context_layers"]["stations_csv"],
+            ["station", "line", "latitude", "longitude"],
+        )
         return frame if not frame.empty else demo_stations()
 
     def office_hubs(self) -> pd.DataFrame:
-        frame = self.load_csv(self.config["context_layers"]["office_hubs_csv"], ["name", "latitude", "longitude"])
+        frame = self.load_csv(
+            self.config["context_layers"]["office_hubs_csv"],
+            ["name", "latitude", "longitude"],
+        )
         return frame if not frame.empty else demo_office_hubs()
 
     def trees(self) -> pd.DataFrame:
         return self.load_csv(self.config["context_layers"]["trees_csv"], ["latitude", "longitude"])
 
     def subway_segments(self) -> pd.DataFrame:
-        required = ["line", "from_station", "to_station", "from_lat", "from_lon", "to_lat", "to_lon", "direction", "is_surface", "is_bridge"]
+        required = [
+            "line", "from_station", "to_station", "from_lat", "from_lon",
+            "to_lat", "to_lon", "direction", "is_surface", "is_bridge",
+        ]
         frame = self.load_csv(self.config["context_layers"]["subway_segments_csv"], required)
         return frame if not frame.empty else demo_subway_segments()
+
+    def automatic_layers(self, allow_demo: bool = True) -> dict[str, dict[str, Any] | None]:
+        configured = self.config.get("automatic_layers") or {}
+        demo = demo_automatic_layers() if allow_demo else {}
+        result: dict[str, dict[str, Any] | None] = {}
+        for key in ("roads_geojson", "buildings_geojson", "railways_geojson", "pedestrian_network_geojson"):
+            path = str(configured.get(key) or "")
+            payload = self.load_geojson(path) if path else None
+            result[key] = payload if payload else demo.get(key)
+        return result
 
     def demo_candidates(self) -> pd.DataFrame:
         return demo_points()
