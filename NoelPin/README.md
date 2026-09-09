@@ -13,7 +13,7 @@
 - 스팟 상세: `여기 서세요`, 바라보는 방향, 도착 팁, 태그
 - 지하철 창밖노을: 노선/구간/창문 방향을 위한 별도 데이터 구조
 - 저장: localStorage 기반 MVP 저장 기능
-- 위치: 버튼 클릭 시 브라우저 Geolocation을 요청해 `현재 위치 기준` 상태를 표시
+- 위치: Apps-in-Toss 위치 API를 사용해 현재 위치 기준 탐색
 - 지도: Kakao Maps JS SDK 키가 있으면 실제 지도, 없으면 UI 확인용 fallback 지도
 
 ## 실행
@@ -61,11 +61,19 @@ npm run deploy
 5. 추천 도착 시간
 6. 지하철 노선별 진행 방향과 창문 방향
 
-## 다음 개발 순서
+## SunsetSpotFinder V1~V5
 
-1. 공공데이터 기반 `SunsetSpotFinder` 후보 생성
-2. 관리자 Spot 검증 화면
-3. VERIFIED Spot API/DB 분리
-4. 실제 일몰 시각 API 연결
-5. 현재 위치 기반 거리/도보 경로
-6. 지하철 지상구간/한강 통과 구간 데이터 구축
+`NoelPin/SunsetSpotFinder`에 후보 발굴 파이프라인이 구현되어 있습니다.
+
+- V1: 보도육교/교량/공원/둘레길/한강변 후보 좌표 생성 + 일몰 방위각
+- V2: 역/업무지구/수변/고도/건물·나무 가림 분석
+- V3: 퇴근 접근성 + 동서방향 도로 기반 건물사이노을 후보
+- V4: 지상 지하철 구간 + 진행방향 기반 왼쪽/오른쪽 창문 후보
+- V5: TOP 후보, HTML 지도, Excel 리포트, 검증 큐, FIELD_VERIFIED publish gate
+
+```powershell
+cd AppInToss\NoelPin\SunsetSpotFinder
+.\start_finder.bat
+```
+
+원본 공공데이터가 없으면 demo 데이터로 전체 V5 흐름을 확인할 수 있고, 실제 데이터만 사용할 때는 `python run_finder.py --stage v5 --no-demo`를 실행합니다.
