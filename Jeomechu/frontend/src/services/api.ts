@@ -1,6 +1,11 @@
 import type { MenuPickResponse, RankingItem } from "../types";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const configuredApiBase = import.meta.env.VITE_API_BASE_URL?.trim();
+const API_BASE = (configuredApiBase || "http://localhost:8000").replace(/\/+$/, "");
+
+if (import.meta.env.PROD && !configuredApiBase) {
+  console.error("VITE_API_BASE_URL is not configured for the production build.");
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
