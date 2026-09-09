@@ -11,6 +11,13 @@ SUNSET_TYPE_BY_SOURCE = {
     "TRAIL": "산책노을",
     "PARK": "산책노을",
     "URBAN_STREET": "건물사이노을",
+    "STAIR": "계단위노을",
+    "HILL_ROAD": "언덕길노을",
+    "VIEW_DECK": "전망데크노을",
+    "LEVEE": "제방위노을",
+    "RIVER_STAIRS": "수변계단노을",
+    "PLAZA": "광장노을",
+    "BIKE_PATH": "자전거길노을",
 }
 
 
@@ -31,8 +38,9 @@ class CandidateRanker:
         total = sum(float(self.weights.get(key, 0)) for key in metric_map) or 1.0
         score = pd.Series(0.0, index=frame.index)
         for key, column in metric_map.items():
+            values = frame[column] if column in frame.columns else pd.Series(0.0, index=frame.index)
             score += (
-                pd.to_numeric(frame.get(column, 0.0), errors="coerce")
+                pd.to_numeric(values, errors="coerce")
                 .fillna(0.0)
                 .clip(0, 1)
                 * (float(self.weights.get(key, 0)) / total)
@@ -41,9 +49,19 @@ class CandidateRanker:
         frame["candidate_priority"] = (score * 100).round(2)
         frame["rank"] = frame["candidate_priority"].rank(method="first", ascending=False).astype(int)
 
-        # NoelPin의 사용자 노출 분류는 장소 자체의 성격을 유지한다.
-        # BUILDING_GAP 같은 값은 내부 분석 힌트일 뿐 sunset_type을 덮어쓰지 않는다.
-        frame["sunset_type"] = frame["source_type"].astype(str).map(SUNSET_TYPE_BY_SOURCE).fillna("숨은노을")
+        # V1에서 지정한 장소형 sunset_type을 최우선으로 보존한다.
+        # BUILDING_GAP 같은 값은 내부 분석 힌트일 뿐 장소형 분류를 덮어쓰지 않는다.
+        source_types = (
+            frame["source_type"].astype(str)
+            if "source_type" in frame.columns
+            else pd.Series("", index=frame.index)
+        )
+        fallback_types = source_types.map(SUNSET_TYPE_BY_SOURCE).fillna("숨은노을")
+        if "sunset_type" in frame.columns:
+            existing = frame["sunset_type"].fillna("").astype(str).str.strip()
+            frame["sunset_type"] = existing.where(existing.ne(""), fallback_types)
+        else:
+            frame["sunset_type"] = fallback_types
         frame["category_hint"] = frame["sunset_type"]
 
         frame["sunset_tags"] = frame.apply(self._build_tags, axis=1)
