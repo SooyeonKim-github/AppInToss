@@ -1,49 +1,84 @@
 # Raw data drop zone
 
-Finder는 원본 파일이 없어도 demo 데이터로 끝까지 실행됩니다. 실제 실행 시 아래 규격으로 정규화한 파일을 넣습니다.
+Finder는 원본 파일이 없어도 demo 데이터로 끝까지 실행됩니다. 실제 실행에서는 WGS84(EPSG:4326)로 정규화한 파일을 넣습니다.
 
-## V1 candidate sources
+## 기존/1차/2차 V1 후보
 
-기존 후보:
-- `pedestrian_bridges.csv`: `name,latitude,longitude` → `육교위노을`
-- `bridges.geojson` → `다리위노을`
-- `parks.geojson` → `산책노을`
-- `trails.geojson` → `산책노을`
-- `riverside.geojson` → `한강노을`
+- `pedestrian_bridges.csv`: `name,latitude,longitude`
+- `bridges.geojson`
+- `parks.geojson`
+- `trails.geojson`
+- `riverside.geojson`
+- `stairs.geojson`
+- `hill_roads.geojson`
+- `view_decks.csv`: `name,latitude,longitude`
+- `levees.geojson`
+- `river_stairs.csv`: `name,latitude,longitude`
+- `plazas.geojson`
+- `bike_paths.geojson`
+- `river_access.csv`: `name,latitude,longitude`
+- `pedestrian_paths.geojson`
+- `fortress_trails.geojson`
+- `ridge_trails.geojson`
+- `sports_grounds.geojson`
 
-1차 확장 후보:
-- `stairs.geojson`: Point/LineString/MultiLineString → `계단위노을`
-- `hill_roads.geojson`: LineString/MultiLineString → `언덕길노을`
-- `view_decks.csv`: `name,latitude,longitude` → `전망데크노을`
-- `levees.geojson`: LineString/MultiLineString → `제방위노을`
-- `river_stairs.csv`: `name,latitude,longitude` → `수변계단노을`
-- `plazas.geojson`: Point/Polygon/MultiPolygon → `광장노을`
-- `bike_paths.geojson`: LineString/MultiLineString → `자전거길노을`
+`PARK_EDGE / 공원끝노을`은 `parks.geojson`의 서쪽 경계를 재사용합니다.
 
-2차 확장 후보:
-- `parks.geojson` 재사용 → `공원끝노을`
-  - 별도 파일 없이 공원 Polygon의 서쪽 25% 경계만 `PARK_EDGE` 후보로 자동 생성
-- `river_access.csv`: `name,latitude,longitude` → `나들목노을`
-- `pedestrian_paths.geojson`: LineString/MultiLineString → `보행로노을`
-- `fortress_trails.geojson`: LineString/MultiLineString → `성곽길노을`
-- `ridge_trails.geojson`: LineString/MultiLineString → `능선노을`
-- `sports_grounds.geojson`: Polygon/MultiPolygon → `운동장노을`
+## 3차 자동발굴 layer
 
-GeoJSON의 이름 속성은 기본적으로 `properties.name`을 사용합니다. 선/면 데이터는 V1에서 `sample_interval_m` 간격으로 후보 좌표를 생성합니다. `PARK_EDGE`만 `sampling_mode: west_edge`를 사용해 서쪽 경계 후보만 남깁니다.
+### `roads.geojson`
+LineString/MultiLineString.
 
-`ridge_trails.geojson`은 일반 등산로 전체가 아니라 실제 능선 구간만 넣는 것을 권장합니다. `sports_grounds.geojson`은 공공 접근이 가능한 운동장/체육공원만 대상으로 합니다.
+선택 속성:
+- `name`
+- `width_m` 또는 `width`, `road_width`
 
-## Context layers
+용도:
+- 대로끝노을
+- 골목끝노을
+- 기존 V3 건물사이노을
+
+### `buildings.geojson`
+Polygon/MultiPolygon.
+
+선택 속성:
+- `name`
+- `height_m`
+- `is_apartment`
+- 건물 용도/명칭에 `아파트`, `공동주택`, `apartment` 등이 포함되어도 아파트 후보로 인식
+
+용도:
+- 골목 좌우 frame
+- 전방 obstruction
+- 아파트사이노을
+
+### `railways.geojson`
+LineString/MultiLineString.
+
+선택 속성:
+- `name`
+- 노선명
+
+용도:
+- 철길너머노을
+
+### `pedestrian_network.geojson`
+LineString/MultiLineString 형태의 **공공 보행가능 네트워크**.
+
+용도:
+- 자동 생성 좌표를 실제 보행망으로 snap
+- 철길너머노을의 관찰 후보 생성
+- 아파트 사유지 내부 후보 억제
+
+보행망 파일이 없으면 대로/골목/아파트 후보는 `ACCESS_UNCHECKED`로 남을 수 있으며, FIELD_VERIFIED 전 앱에 공개하지 않습니다. 철길너머노을은 안전상 보행망이 없으면 자동 생성하지 않습니다.
+
+## Context layer
 
 - `subway_stations.csv`: `station,line,latitude,longitude`
 - `office_hubs.csv`: `name,latitude,longitude`
 - `trees.csv`: `name,latitude,longitude,height_m,crown_m`
-- `buildings.geojson`: Polygon/MultiPolygon, optional `height_m`
-- `roads.geojson`: LineString/MultiLineString
-- `water.geojson`: LineString/Polygon/Multi* geometry
+- `water.geojson`
 - `subway_segments.csv`: `line,from_station,to_station,from_lat,from_lon,to_lat,to_lon,direction,is_surface,is_bridge`
-- `seoul_dem.tif`: optional DEM; install `requirements-geo.txt` to enable raster sampling.
+- `seoul_dem.tif`: optional DEM
 
 GeoJSON 좌표계는 WGS84(EPSG:4326)를 기준으로 합니다.
-
-모든 후보는 현장 검증 전 `CANDIDATE`입니다. 차도, 출입 제한 구역, 사유지, 위험한 제방/절벽 등 보행 안전성이 확인되지 않은 위치는 실제 NoelPin 스팟으로 공개하지 않습니다.
