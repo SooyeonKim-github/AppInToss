@@ -50,8 +50,6 @@ candidate_sources:
     source_type: RIVER
     sunset_type: 한강노을
     name_property: name
-
-  # V1 first-wave expansion
   stairs:
     enabled: true
     kind: geojson
@@ -105,9 +103,6 @@ candidate_sources:
     source_type: BIKE_PATH
     sunset_type: 자전거길노을
     name_property: name
-
-  # V1 second-wave expansion
-  # Reuses parks.geojson but only generates candidates from the western 25% boundary.
   park_edges:
     enabled: true
     kind: geojson
@@ -163,6 +158,46 @@ context_layers:
   water_geojson: data/raw/water.geojson
   subway_segments_csv: data/raw/subway_segments.csv
 
+automatic_layers:
+  roads_geojson: data/raw/roads.geojson
+  buildings_geojson: data/raw/buildings.geojson
+  railways_geojson: data/raw/railways.geojson
+  pedestrian_network_geojson: data/raw/pedestrian_network.geojson
+
+automatic_discovery:
+  enabled: true
+  reference_latitude: 37.5665
+  reference_longitude: 126.9780
+  road_axis:
+    min_length_m: 150
+    max_alignment_deg: 15
+    min_width_m: 10
+    max_front_buildings: 1
+    public_snap_m: 45
+    max_candidates: 2500
+  alley_axis:
+    min_length_m: 40
+    max_length_m: 220
+    max_alignment_deg: 18
+    max_width_m: 9
+    min_flank_buildings: 2
+    max_front_buildings: 1
+    public_snap_m: 25
+    max_candidates: 2500
+  rail_edge:
+    sample_interval_m: 90
+    min_rail_distance_m: 15
+    max_rail_distance_m: 160
+    max_alignment_deg: 28
+    min_candidate_spacing_m: 120
+    max_candidates: 2000
+  apartment_gap:
+    min_gap_m: 20
+    max_gap_m: 110
+    max_alignment_deg: 20
+    public_snap_m: 55
+    max_candidates: 1800
+
 analysis:
   sunset_azimuth_min: 230
   sunset_azimuth_max: 310
@@ -194,15 +229,20 @@ analysis:
     FORTRESS_TRAIL: 1
     RIDGE_TRAIL: 0
     SPORTS_GROUND: 0
+    ROAD_AXIS: 0
+    ALLEY_AXIS: 0
+    RAIL_EDGE: 0
+    APARTMENT_GAP: 0
 
 ranking:
   weights:
-    openness: 0.30
+    openness: 0.25
     commute: 0.25
     view: 0.15
     elevation: 0.10
     station: 0.10
-    uniqueness: 0.10
+    uniqueness: 0.05
+    frame: 0.10
 
 verification:
   publish_statuses:
