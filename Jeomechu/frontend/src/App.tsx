@@ -10,7 +10,7 @@ export default function App() {
   return (
     <main className="app-shell">
       <header className="brand-header">
-        <div className="brand-mark">저메추 <span>🍽️</span></div>
+        <div className="brand-mark">김대리의 저메추 <span>🍽️</span></div>
         <p>오늘 저녁, 고민은 여기까지.</p>
       </header>
 
