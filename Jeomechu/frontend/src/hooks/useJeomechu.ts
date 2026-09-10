@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchTodayMenu, fetchTodayRanking, rerollMenu, toggleMenuLike } from "../services/api";
-import { showRewardedAd } from "../services/adService";
+import { preloadRewardedAd, showRewardedAd } from "../services/adService";
 import type { MenuPickResponse, RankingItem } from "../types";
 import { getClientId } from "../utils/clientId";
 
@@ -49,6 +49,9 @@ export function useJeomechu() {
       .finally(() => active && setBusy(false));
 
     refreshRanking();
+
+    // 사용자가 첫 메뉴를 보는 동안 다음 '다시뽑기'용 광고를 미리 준비한다.
+    void preloadRewardedAd();
 
     return () => {
       active = false;
