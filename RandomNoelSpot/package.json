@@ -1,0 +1,9 @@
+{
+  "name": "random-noel-spot",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": { "dev": "vite", "build": "tsc -b && vite build && ait build", "preview": "vite preview", "deploy": "ait deploy" },
+  "dependencies": { "@apps-in-toss/web-framework": "3.0.4", "react": "^19.0.0", "react-dom": "^19.0.0" },
+  "devDependencies": { "@apps-in-toss/devtools": "3.0.4", "@types/react": "^19.0.10", "@types/react-dom": "^19.0.4", "@vitejs/plugin-react": "^4.3.4", "typescript": "~5.7.2", "vite": "^6.2.0" }
+}
