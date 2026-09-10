@@ -35,5 +35,5 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Build web bundle
-        run: npx vite build
+      - name: Build Apps-in-Toss bundle
+        run: npm run build
