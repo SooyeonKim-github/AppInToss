@@ -35,5 +35,17 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Build Apps-in-Toss bundle
+      - name: Build Apps-in-Toss QR test bundle
         run: npm run build
+        env:
+          VITE_API_BASE_URL: https://jeomechu-api-production.up.railway.app
+          VITE_REWARDED_AD_UNIT_ID: ait-ad-test-rewarded-id
+
+      - name: Upload QR test bundle
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: jeomechu-ait-qr-test
+          path: Jeomechu/frontend/jeomechu.ait
+          if-no-files-found: error
+          retention-days: 14
